@@ -1,12 +1,12 @@
 `timescale 1ns / 1ps
 
 module lookup_engine_top #(
-    parameter C_S_AXIS_DATA_WIDTH = 512,
+    parameter C_S_AXIS_DATA_WIDTH = 256,
     parameter C_S_AXIS_TUSER_WIDTH = 128,
     parameter STAGE_ID = 0,
-    parameter PHV_LEN = 48*8+32*8+16*8+256,
-    parameter KEY_LEN = 48*2+32*2+16*2+5,
-    parameter ACT_LEN = 625,
+    parameter PHV_LEN = 48*64+32*64+16*64+256,
+    parameter KEY_LEN = 48*32+32*32+16*32+1,
+    parameter ACT_LEN = 64*193,
     parameter LOOKUP_ID = 2,
 	parameter C_VLANID_WIDTH = 12
 )
@@ -55,13 +55,13 @@ wire								c_s_axis_tlast_0;
 
 wire [PHV_LEN-1:0]					cam_phv_out;
 wire								cam_phv_out_valid;
-wire [3:0]							cam_match_addr_out;
+wire [5:0]							cam_match_addr_out;
 wire								cam_if_match;
 wire								lke_ram_ready;
 
 reg [PHV_LEN-1:0]				cam_phv_out_d1;
 reg								cam_phv_out_valid_d1;
-reg [3:0]						cam_match_addr_out_d1;
+reg [5:0]						cam_match_addr_out_d1;
 reg								cam_if_match_d1;
 
 always @(posedge clk) begin

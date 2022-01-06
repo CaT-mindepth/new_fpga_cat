@@ -2,7 +2,7 @@
 
 module alu_1 #(
     parameter STAGE_ID = 0,
-    parameter ACTION_LEN = 25,
+    parameter ACTION_LEN = 64,
     parameter DATA_WIDTH = 48  //data width of the ALU
 )
 (

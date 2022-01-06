@@ -1,12 +1,25 @@
 `timescale 1ns / 1ps
 
+`define PARSE_STATE_TRANSITION(state_from, state_to, idx) \
+	``state_from``: begin \
+		if (s_axis_tvalid) begin \
+			tdata_segs_next[idx*C_AXIS_DATA_WIDTH+:C_AXIS_DATA_WIDTH] = s_axis_tdata; \
+			if (s_axis_tlast) begin \
+				segs_valid_next = 1; \
+				state_next = WAIT_1ST_SEG; \
+			end \
+			else begin \
+				state_next = ``state_to``; \
+			end \
+		end \
+	end \
 
 module parser_wait_segs #(
 	parameter C_AXIS_DATA_WIDTH = 256,
 	parameter C_AXIS_TUSER_WIDTH = 128,
-	parameter C_NUM_SEGS = 4,
+	parameter C_NUM_SEGS = 16,
 	parameter PARSER_MOD_ID = 3'b0,
-	parameter C_PARSER_RAM_WIDTH = 160
+	parameter C_PARSER_RAM_WIDTH = 24*64
 )
 (
 	input											axis_clk,
@@ -45,12 +58,24 @@ localparam	WAIT_1ST_SEG=0,
 			WAIT_2ND_SEG=1,
 			WAIT_3RD_SEG=2,
 			WAIT_4TH_SEG=3,
-			OUTPUT_SEGS=4,
-			EMPTY_1CYCLE=5,
-			EMPTY_2CYCLE=6,
-			WAIT_TILL_LAST=7;
+			WAIT_5TH_SEG=4,
+			WAIT_6TH_SEG=5,
+			WAIT_7TH_SEG=6,
+			WAIT_8TH_SEG=7,
+			WAIT_9TH_SEG=8,
+			WAIT_10_SEG=9,
+			WAIT_11_SEG=10,
+			WAIT_12_SEG=11,
+			WAIT_13_SEG=12,
+			WAIT_14_SEG=13,
+			WAIT_15_SEG=14,
+			WAIT_16_SEG=15,
+			OUTPUT_SEGS=16,
+			EMPTY_1CYCLE=17,
+			EMPTY_2CYCLE=18,
+			WAIT_TILL_LAST=19;
 
-reg [3:0]	state, state_next;
+reg [4:0]	state, state_next;
 reg [C_NUM_SEGS*C_AXIS_DATA_WIDTH-1:0] tdata_segs_next;
 reg [C_AXIS_TUSER_WIDTH-1:0] tuser_1st_next;
 reg segs_valid_next;
@@ -78,6 +103,7 @@ always @(*) begin
 
 	case (state)
 		// at least 2 segs
+		// VLAN ID is determined at 1st state
 		WAIT_1ST_SEG: begin
 			if (s_axis_tvalid) begin
 				tdata_segs_next[0*C_AXIS_DATA_WIDTH+:C_AXIS_DATA_WIDTH] = s_axis_tdata;
@@ -124,9 +150,23 @@ always @(*) begin
 				end
 			end
 		end
-		WAIT_4TH_SEG: begin
+
+		`PARSE_STATE_TRANSITION(WAIT_4TH_SEG, WAIT_5TH_SEG, 3)
+		`PARSE_STATE_TRANSITION(WAIT_5TH_SEG, WAIT_6TH_SEG, 4)
+		`PARSE_STATE_TRANSITION(WAIT_6TH_SEG, WAIT_7TH_SEG, 5)
+		`PARSE_STATE_TRANSITION(WAIT_7TH_SEG, WAIT_8TH_SEG, 6)
+		`PARSE_STATE_TRANSITION(WAIT_8TH_SEG, WAIT_9TH_SEG, 7)
+		`PARSE_STATE_TRANSITION(WAIT_9TH_SEG, WAIT_10_SEG, 8)
+		`PARSE_STATE_TRANSITION(WAIT_10_SEG, WAIT_11_SEG, 9)
+		`PARSE_STATE_TRANSITION(WAIT_11_SEG, WAIT_12_SEG, 10)
+		`PARSE_STATE_TRANSITION(WAIT_12_SEG, WAIT_13_SEG, 11) 
+		`PARSE_STATE_TRANSITION(WAIT_13_SEG, WAIT_14_SEG, 12)
+		`PARSE_STATE_TRANSITION(WAIT_14_SEG, WAIT_15_SEG, 13)
+		`PARSE_STATE_TRANSITION(WAIT_15_SEG, WAIT_16_SEG, 14)
+
+		WAIT_16_SEG: begin
 			if (s_axis_tvalid) begin
-				tdata_segs_next[3*C_AXIS_DATA_WIDTH+:C_AXIS_DATA_WIDTH] = s_axis_tdata;
+				tdata_segs_next[15*C_AXIS_DATA_WIDTH+:C_AXIS_DATA_WIDTH] = s_axis_tdata;
 
 				segs_valid_next = 1;
 				if (s_axis_tlast) begin
@@ -218,21 +258,38 @@ assign ctrl_s_axis_tdata_swapped = {	ctrl_s_axis_tdata[0+:8],
 
 reg	[7:0]						ctrl_wr_ram_addr_next;
 reg [7:0]						ctrl_wr_ram_addr;
-reg	[159:0]						ctrl_wr_ram_data;
-reg	[159:0]						ctrl_wr_ram_data_next;
+reg	[C_PARSER_RAM_WIDTH-1:0]					ctrl_wr_ram_data;
+reg	[C_PARSER_RAM_WIDTH-1:0]					ctrl_wr_ram_data_next;
 reg								ctrl_wr_ram_en_next;
 reg								ctrl_wr_ram_en;
 wire [7:0]						ctrl_mod_id;
 
 assign ctrl_mod_id = ctrl_s_axis_tdata[112+:8];
 
-localparam	WAIT_FIRST_PKT = 0,
-			WAIT_SECOND_PKT = 1,
-			WAIT_THIRD_PKT = 2,
-			WRITE_RAM = 3,
-			FLUSH_REST_C = 4;
+localparam	WAIT_1_PKT = 0,
+			WAIT_2_PKT = 1,
+			WAIT_3_PKT = 2,
+			WAIT_4_PKT = 3,
+			WAIT_5_PKT = 4,
+			WAIT_6_PKT = 5,
+			WAIT_7_PKT = 6,
+			WAIT_8_PKT = 7,
+			WAIT_9_PKT = 8,
+			WAIT_10_PKT = 9,
+			WAIT_11_PKT = 10,
+			WAIT_12_PKT = 11,
+			WRITE_RAM = 12,
+			FLUSH_REST_C = 13;
 
-reg [2:0] ctrl_state, ctrl_state_next;
+reg [4:0] ctrl_state, ctrl_state_next;
+
+`define GET_CTRL_WR_RAM_DATA(state_from, state_to, idx) \
+		``state_from``: begin \
+			if (ctrl_s_axis_tvalid) begin \
+				ctrl_state_next = ``state_to``; \
+				ctrl_wr_ram_data_next[C_PARSER_RAM_WIDTH-1-idx*256 -: 256] = ctrl_s_axis_tdata_swapped; \
+			end \
+		end \
 
 always @(*) begin
 	ctrl_m_axis_tdata_next = ctrl_s_axis_tdata;
@@ -247,17 +304,17 @@ always @(*) begin
 	ctrl_wr_ram_en_next = 0;
 
 	case (ctrl_state)
-		WAIT_FIRST_PKT: begin
+		WAIT_1_PKT: begin
 			// 1st ctrl packet
 			if (ctrl_s_axis_tvalid) begin
-				ctrl_state_next = WAIT_SECOND_PKT;
+				ctrl_state_next = WAIT_2_PKT;
 			end
 		end
-		WAIT_SECOND_PKT: begin
+		WAIT_2_PKT: begin
 			// 2nd ctrl packet, we can check module ID
 			if (ctrl_s_axis_tvalid) begin
 				if (ctrl_mod_id[2:0]==PARSER_MOD_ID) begin
-					ctrl_state_next = WAIT_THIRD_PKT;
+					ctrl_state_next = WAIT_3_PKT;
 
 					ctrl_wr_ram_addr_next = ctrl_s_axis_tdata[128+:8];
 				end
@@ -266,16 +323,24 @@ always @(*) begin
 				end
 			end
 		end
-		WAIT_THIRD_PKT: begin // first half of ctrl_wr_ram_data
+
+		`GET_CTRL_WR_RAM_DATA(WAIT_3_PKT, WAIT_4_PKT, 0)
+		`GET_CTRL_WR_RAM_DATA(WAIT_4_PKT, WAIT_5_PKT, 1)
+		`GET_CTRL_WR_RAM_DATA(WAIT_5_PKT, WAIT_6_PKT, 2)
+		`GET_CTRL_WR_RAM_DATA(WAIT_6_PKT, WAIT_7_PKT, 3)
+		`GET_CTRL_WR_RAM_DATA(WAIT_7_PKT, WAIT_8_PKT, 4)
+
+		WAIT_8_PKT: begin
 			if (ctrl_s_axis_tvalid) begin
 				ctrl_state_next = WRITE_RAM;
-				ctrl_wr_ram_data_next = ctrl_s_axis_tdata_swapped[255-:160];
+				ctrl_wr_ram_data_next[0+:256] = ctrl_s_axis_tdata_swapped;
 			end
 		end
+
 		WRITE_RAM: begin // second half of ctrl_wr_ram_data
 			if (ctrl_s_axis_tvalid) begin
 				if (ctrl_s_axis_tlast) 
-					ctrl_state_next = WAIT_FIRST_PKT;
+					ctrl_state_next = WAIT_1_PKT;
 				else
 					ctrl_state_next = FLUSH_REST_C;
 				ctrl_wr_ram_en_next = 1;
@@ -283,7 +348,7 @@ always @(*) begin
 		end
 		FLUSH_REST_C: begin
 			if (ctrl_s_axis_tvalid && ctrl_s_axis_tlast) begin
-				ctrl_state_next = WAIT_FIRST_PKT;
+				ctrl_state_next = WAIT_1_PKT;
 			end
 		end
 	endcase
@@ -292,7 +357,7 @@ end
 always @(posedge axis_clk) begin
 	if (~aresetn) begin
 		//
-		ctrl_state <= WAIT_FIRST_PKT;
+		ctrl_state <= WAIT_1_PKT;
 
 		ctrl_m_axis_tdata <= 0;
 		ctrl_m_axis_tuser <= 0;

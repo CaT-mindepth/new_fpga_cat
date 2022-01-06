@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 module alu_3 #(
     parameter STAGE_ID = 0,
-    parameter ACTION_LEN = 25,
+    parameter ACTION_LEN = 64,
     parameter META_LEN = 256
 )(
     input                               clk,

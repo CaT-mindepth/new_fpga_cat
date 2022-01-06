@@ -257,7 +257,8 @@ reg 										ctrl_s_axis_tlast_7_r;
 //Registers section
  rmt_cpu_regs
  #(
-     .C_BASE_ADDRESS        (0),
+     // .C_BASE_ADDRESS        (0),
+     .C_BASE_ADDRESS        (32'h44020000),
      .C_S_AXI_DATA_WIDTH    (C_S_AXI_DATA_WIDTH),
      .C_S_AXI_ADDR_WIDTH    (C_S_AXI_ADDR_WIDTH)
  ) rmt_cpu_regs_inst

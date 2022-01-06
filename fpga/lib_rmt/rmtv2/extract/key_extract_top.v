@@ -1,14 +1,12 @@
 `timescale 1ns / 1ps
 module key_extract_top #(
-    parameter C_S_AXIS_DATA_WIDTH = 512,
+    parameter C_S_AXIS_DATA_WIDTH = 256,
     parameter C_S_AXIS_TUSER_WIDTH = 128,
     parameter STAGE_ID = 0,
-    parameter PHV_LEN = 48*8+32*8+16*8+256,
-    parameter KEY_LEN = 48*2+32*2+16*2+1,
+    parameter PHV_LEN = 48*64+32*64+16*64+256,
+    parameter KEY_LEN = 48*32+32*32+16*32+1,
     // format of KEY_OFF entry: |--3(6B)--|--3(6B)--|--3(4B)--|--3(4B)--|--3(2B)--|--3(2B)--|
-    parameter KEY_OFF = (3+3)*3+20,
-    parameter AXIL_WIDTH = 32,
-    parameter KEY_OFF_ADDR_WIDTH = 4,
+    parameter KEY_OFF = 32*6*3+20,
     parameter KEY_EX_ID = 1,
 	parameter C_VLANID_WIDTH = 12
     )(
@@ -46,7 +44,7 @@ module key_extract_top #(
 
 wire [KEY_OFF-1:0]      key_offset_w; // output from RAM
 //
-wire [KEY_LEN-1:0]      key_mask_out_w; // output from RAM
+// wire [KEY_LEN-1:0]      key_mask_out_w; // output from RAM
 //
 wire extract_ready_out;
 
@@ -104,7 +102,7 @@ reg [PHV_LEN-1:0]	phv_in_d1;
 reg					phv_valid_in_d1;
 reg					key_offset_valid_d1;
 reg [KEY_OFF-1:0]	key_offset_w_d1; // output from RAM
-reg [KEY_LEN-1:0]	key_mask_out_w_d1; // output from RAM
+// reg [KEY_LEN-1:0]	key_mask_out_w_d1; // output from RAM
 
 always @(posedge clk) begin
 	if (~rst_n) begin
@@ -112,14 +110,14 @@ always @(posedge clk) begin
 		phv_valid_in_d1 <= 0;
 		key_offset_valid_d1 <= 0;
 		key_offset_w_d1 <= 0;
-		key_mask_out_w_d1 <= 0;
+		// key_mask_out_w_d1 <= 0;
 	end
 	else begin
 		phv_in_d1 <= phv_in;
 		phv_valid_in_d1 <= phv_valid_in;
 		key_offset_valid_d1 <= key_offset_valid;
 		key_offset_w_d1 <= key_offset_w;
-		key_mask_out_w_d1 <= key_mask_out_w;
+		// key_mask_out_w_d1 <= key_mask_out_w;
 	end
 end
 
@@ -143,7 +141,7 @@ extractor
 	//
 	.key_offset_valid	(key_offset_valid_d1),
 	.key_offset_w		(key_offset_w_d1),
-	.key_mask_w			(key_mask_out_w_d1),
+	.key_mask_w			({KEY_LEN{1'b1}}),
 
 	// output
 	.phv_out		(phv_out),
@@ -152,23 +150,6 @@ extractor
 	.key_valid_out	(key_valid_out),
 	.ready_in		(ready_in)
 );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 //======================================================================================
@@ -181,7 +162,7 @@ reg                 c_wr_en_off; //enable table write(wena)
 reg                 c_wr_en_mask;
 
 
-reg [2:0]           c_state;
+reg [4:0]           c_state;
 
 
 
@@ -191,7 +172,9 @@ localparam IDLE_C = 0,
            SU_WRITE_OFF_C = 3,
            WRITE_MASK_C = 4,
            SU_WRITE_MASK_C = 5,
-		   FLUSH_PKT_C = 6;
+		   FLUSH_PKT_C = 6,
+		   WRITE_OFF_C_1 = 7,
+		   WRITE_OFF_C_2 = 8;
 
 generate 
     if(C_S_AXIS_DATA_WIDTH == 512) begin
@@ -202,7 +185,7 @@ generate
         assign control_flag = c_s_axis_tdata[335:320];
 
         reg [37:0]                    key_off_entry_reg;
-        reg [192:0]                   key_mask_entry_reg;
+        // reg [192:0]                   key_mask_entry_reg;
         //LE to BE switching
         wire[C_S_AXIS_DATA_WIDTH-1:0] c_s_axis_tdata_swapped;
 
@@ -284,7 +267,7 @@ generate
                 c_m_axis_tlast <= 0;
 
                 key_off_entry_reg <= 0;
-                key_mask_entry_reg <= 0;
+                // key_mask_entry_reg <= 0;
         
                 c_state <= IDLE_C;
         
@@ -363,7 +346,7 @@ generate
 
                     WRITE_MASK_C: begin
                         if(c_s_axis_tvalid) begin
-                            key_mask_entry_reg <= c_s_axis_tdata_swapped[511 -: 193];
+                            // key_mask_entry_reg <= c_s_axis_tdata_swapped[511 -: 193];
                             c_wr_en_mask <= 1'b1;
                             if(c_s_axis_tlast) begin
                                 c_state <= IDLE_C;
@@ -379,7 +362,7 @@ generate
 
                     SU_WRITE_MASK_C: begin
                         if(c_s_axis_tvalid) begin
-                            key_mask_entry_reg <= c_s_axis_tdata_swapped[511 -: 193];
+                            // key_mask_entry_reg <= c_s_axis_tdata_swapped[511 -: 193];
                             c_wr_en_mask <= 1'b1;
                             c_index <= c_index + 1'b1;
                             if(c_s_axis_tlast) begin
@@ -485,10 +468,10 @@ generate
         assign control_flag = c_s_axis_tdata[64+:16];
 
 		reg [7:0] c_index_next;
-		reg [2:0] c_state_next;
+		reg [4:0] c_state_next;
 		reg c_wr_en_off_next, c_wr_en_mask_next;
-		reg [37:0] key_off_entry_reg, key_off_entry_reg_next;
-		reg [192:0] key_mask_entry_reg, key_mask_entry_reg_next;
+		reg [KEY_OFF-1:0] key_off_entry_reg, key_off_entry_reg_next;
+		// reg [192:0] key_mask_entry_reg, key_mask_entry_reg_next;
 
 		reg [C_S_AXIS_DATA_WIDTH-1:0]		r_tdata, c_s_axis_tdata_d1;
 		reg [C_S_AXIS_TUSER_WIDTH-1:0]		r_tuser, c_s_axis_tuser_d1;
@@ -521,7 +504,7 @@ generate
 			c_wr_en_off_next = 0;
 			c_index_next = c_index;
 			key_off_entry_reg_next = key_off_entry_reg;
-			key_mask_entry_reg_next = key_mask_entry_reg;
+			// key_mask_entry_reg_next = key_mask_entry_reg;
 
 			case (c_state)
 				IDLE_C: begin
@@ -563,8 +546,20 @@ generate
 				end
 				WRITE_OFF_C: begin
 					if (c_s_axis_tvalid) begin
+						key_off_entry_reg_next[KEY_OFF-1 -: 256] = c_s_axis_tdata_swapped;
+						c_state_next = WRITE_OFF_C_1;
+					end
+				end
+				WRITE_OFF_C_1: begin
+					if (c_s_axis_tvalid) begin
+						key_off_entry_reg_next[KEY_OFF-1-256 -: 256] = c_s_axis_tdata_swapped;
+						c_state_next = WRITE_OFF_C_2;
+					end
+				end
+				WRITE_OFF_C_2: begin
+					if (c_s_axis_tvalid) begin
 						c_wr_en_off_next = 1;
-						key_off_entry_reg_next = c_s_axis_tdata_swapped[255-:38];
+						key_off_entry_reg_next[0+:84] = c_s_axis_tdata_swapped[255-:84];
 
 						c_state_next = FLUSH_PKT_C;
 					end
@@ -572,7 +567,7 @@ generate
 				WRITE_MASK_C: begin
 					if (c_s_axis_tvalid) begin
 						c_wr_en_mask_next = 1;
-						key_mask_entry_reg_next = c_s_axis_tdata_swapped[255-:193];
+						// key_mask_entry_reg_next = c_s_axis_tdata_swapped[255-:193];
 
 						c_state_next = FLUSH_PKT_C;
 					end
@@ -607,7 +602,7 @@ generate
 				c_wr_en_off <= 0;
 				c_wr_en_mask <= 0;
 				key_off_entry_reg <= 0;
-				key_mask_entry_reg <= 0;
+				// key_mask_entry_reg <= 0;
 			end
 			else begin
 				c_state <= c_state_next;
@@ -622,7 +617,7 @@ generate
 				c_wr_en_off <= c_wr_en_off_next;
 				c_wr_en_mask <= c_wr_en_mask_next;
 				key_off_entry_reg <= key_off_entry_reg_next;
-				key_mask_entry_reg <= key_mask_entry_reg_next;
+				// key_mask_entry_reg <= key_mask_entry_reg_next;
 			end
 		end
 
@@ -663,7 +658,7 @@ generate
         // 	.C_LOAD_INIT_FILE	(1)
         // )
         blk_mem_gen_2
-        key_ram_38w_32d
+        key_ram_596w_32d
         (
             .addra(c_index[4:0]),
             .clka(clk),
@@ -678,6 +673,7 @@ generate
             .enb(1'b1)
         );
 
+		/*
         blk_mem_gen_3
         mask_ram_193w_16d
         (
@@ -692,7 +688,7 @@ generate
             .clkb(clk),
             .doutb(key_mask_out_w),
             .enb(1'b1)
-        );
+        );*/
     end
 endgenerate
 

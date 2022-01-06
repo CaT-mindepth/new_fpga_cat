@@ -1,12 +1,14 @@
 `timescale 1ns / 1ps
 module action_engine #(
     parameter STAGE_ID = 0,
-    parameter PHV_LEN = 48*8+32*8+16*8+256,
-    parameter ACT_LEN = 25,
+    parameter PHV_LEN = 4*8*64+256,
+    parameter ACT_LEN = 64,
     parameter ACTION_ID = 3,
-    parameter C_S_AXIS_DATA_WIDTH = 512,
+    parameter C_S_AXIS_DATA_WIDTH = 256,
     parameter C_S_AXIS_TUSER_WIDTH = 128,
-	parameter C_VLANID_WIDTH = 12
+	parameter C_VLANID_WIDTH = 12,
+	parameter C_NUM_PHVS = 64+1,
+	parameter C_WIDTH_METADATA = 256
 )(
     input clk,
     input rst_n,
@@ -14,7 +16,7 @@ module action_engine #(
     //signals from lookup to ALUs
     input [PHV_LEN-1:0]           phv_in,
     input                         phv_valid_in,
-    input [ACT_LEN*25-1:0]        action_in,
+    input [ACT_LEN*C_NUM_PHVS-1:0]        action_in,
     input                         action_valid_in,
     output                        ready_out,
 
@@ -49,34 +51,15 @@ module action_engine #(
 
                         
 /********intermediate variables declared here********/
-localparam width_2B = 16;
 localparam width_4B = 32;
-localparam width_6B = 48;
 
 wire                        alu_in_valid;
-wire [width_6B*8-1:0]       alu_in_6B_1;
-wire [width_6B*8-1:0]       alu_in_6B_2;
-wire [width_4B*8-1:0]       alu_in_4B_1;
-wire [width_4B*8-1:0]       alu_in_4B_2;
-wire [width_4B*8-1:0]       alu_in_4B_3;
-wire [width_2B*8-1:0]       alu_in_2B_1;
-wire [width_2B*8-1:0]       alu_in_2B_2;
-wire [255:0]                alu_in_phv_remain_data;
-wire [ACT_LEN*25-1:0]       alu_in_action;
+wire [width_4B*64-1:0]       alu_in_4B_1;
+wire [width_4B*64-1:0]       alu_in_4B_2;
+wire [width_4B*64-1:0]       alu_in_4B_3;
+wire [C_WIDTH_METADATA-1:0]                alu_in_phv_remain_data;
+wire [ACT_LEN*C_NUM_PHVS-1:0]       alu_in_action;
 wire                        alu_in_action_valid;
-
-// reg                        alu_in_valid_d1;
-// reg [width_6B*8-1:0]       alu_in_6B_1_d1;
-// reg [width_6B*8-1:0]       alu_in_6B_2_d1;
-// reg [width_4B*8-1:0]       alu_in_4B_1_d1;
-// reg [width_4B*8-1:0]       alu_in_4B_2_d1;
-// reg [width_4B*8-1:0]       alu_in_4B_3_d1;
-// reg [width_2B*8-1:0]       alu_in_2B_1_d1;
-// reg [width_2B*8-1:0]       alu_in_2B_2_d1;
-// reg [255:0]                alu_in_phv_remain_data_d1;
-// reg [ACT_LEN*25-1:0]       alu_in_action_d1;
-// reg                        alu_in_action_valid_d1;
-
 
 // output phv
 wire		                phv_valid_bit;
@@ -94,10 +77,8 @@ wire [15:0]					page_tbl_out;
 /********intermediate variables declared here********/
 /********IPs instancilized here*********/
 
-wire [width_6B-1:0]			output_6B[0:7];
-wire [width_4B-1:0]			output_4B[0:7];
-wire [width_2B-1:0]			output_2B[0:7];
-wire [255:0]				output_md;
+wire [width_4B-1:0]			output_4B[0:63];
+wire [C_WIDTH_METADATA-1:0]				output_md;
 
 
 reg [PHV_LEN-1:0]	phv_out_r;
@@ -110,9 +91,16 @@ always @(*) begin
 
 	if (phv_valid_bit) begin
 		phv_valid_out_r = 1;
-		phv_out_r = {output_6B[7], output_6B[6], output_6B[5], output_6B[4], output_6B[3], output_6B[2], output_6B[1], output_6B[0],
+		phv_out_r = {
+				output_4B[63], output_4B[62], output_4B[61], output_4B[60], output_4B[59], output_4B[58], output_4B[57], output_4B[56],
+				output_4B[55], output_4B[54], output_4B[53], output_4B[52], output_4B[51], output_4B[50], output_4B[49], output_4B[48],
+				output_4B[47], output_4B[46], output_4B[45], output_4B[44], output_4B[43], output_4B[42], output_4B[41], output_4B[40],
+				output_4B[39], output_4B[38], output_4B[37], output_4B[36], output_4B[35], output_4B[34], output_4B[33], output_4B[32],
+				output_4B[31], output_4B[30], output_4B[29], output_4B[28], output_4B[27], output_4B[26], output_4B[25], output_4B[24],
+				output_4B[23], output_4B[22], output_4B[21], output_4B[20], output_4B[19], output_4B[18], output_4B[17], output_4B[16],
+				output_4B[15], output_4B[14], output_4B[13], output_4B[12], output_4B[11], output_4B[10], output_4B[9], output_4B[8],
 				output_4B[7], output_4B[6], output_4B[5], output_4B[4], output_4B[3], output_4B[2], output_4B[1], output_4B[0],
-				output_2B[7], output_2B[6], output_2B[5], output_2B[4], output_2B[3], output_2B[2], output_2B[1], output_2B[0], output_md};
+				output_md};
 	end
 end
 
@@ -219,48 +207,12 @@ always @(posedge clk) begin
 end
 
 
-// delay 1 cycle
-// always @(posedge clk) begin
-// 	if (~rst_n) begin
-// 		alu_in_valid_d1				<= 0;
-// 		alu_in_6B_1_d1				<= 0;
-// 		alu_in_6B_2_d1				<= 0;
-// 		alu_in_4B_1_d1				<= 0;
-// 		alu_in_4B_2_d1				<= 0;
-// 		alu_in_4B_3_d1				<= 0;
-// 		alu_in_2B_1_d1				<= 0;
-// 		alu_in_2B_2_d1				<= 0;
-// 		alu_in_phv_remain_data_d1	<= 0;
-// 		alu_in_action_d1			<= 0;
-// 		alu_in_action_valid_d1		<= 0;
-// 		page_tbl_out_valid_d1		<= 0;
-// 		page_tbl_out_d1				<= 0;
-// 	end
-// 	else begin
-// 		alu_in_valid_d1				<=	alu_in_valid;
-// 		alu_in_6B_1_d1				<=	alu_in_6B_1;
-// 		alu_in_6B_2_d1				<=	alu_in_6B_2;
-// 		alu_in_4B_1_d1				<=	alu_in_4B_1;
-// 		alu_in_4B_2_d1				<=	alu_in_4B_2;
-// 		alu_in_4B_3_d1				<=	alu_in_4B_3;
-// 		alu_in_2B_1_d1				<=	alu_in_2B_1;
-// 		alu_in_2B_2_d1				<=	alu_in_2B_2;
-// 		alu_in_phv_remain_data_d1	<=	alu_in_phv_remain_data;
-// 		alu_in_action_d1			<=	alu_in_action;
-// 		alu_in_action_valid_d1		<=	alu_in_action_valid;
-// 		page_tbl_out_valid_d1		<=	page_tbl_out_valid;
-// 		page_tbl_out_d1				<=	page_tbl_out;
-// 	end
-// end
 
 //crossbar
 crossbar #(
     .STAGE_ID(STAGE_ID),
     .PHV_LEN(),
     .ACT_LEN(),
-    .width_2B(),
-    .width_4B(),
-    .width_6B()
 )cross_bar(
     .clk(clk),
     .rst_n(rst_n),
@@ -273,13 +225,13 @@ crossbar #(
     .ready_out(ready_out),
     //output to the ALU
     .alu_in_valid(alu_in_valid),
-    .alu_in_6B_1(alu_in_6B_1),
-    .alu_in_6B_2(alu_in_6B_2),
+    // .alu_in_6B_1(alu_in_6B_1),
+    // .alu_in_6B_2(alu_in_6B_2),
     .alu_in_4B_1(alu_in_4B_1),
     .alu_in_4B_2(alu_in_4B_2),
     .alu_in_4B_3(alu_in_4B_3),
-    .alu_in_2B_1(alu_in_2B_1),
-    .alu_in_2B_2(alu_in_2B_2),
+    // .alu_in_2B_1(alu_in_2B_1),
+    // .alu_in_2B_2(alu_in_2B_2),
     .phv_remain_data(alu_in_phv_remain_data),
     .action_out(alu_in_action),
     .action_valid_out(alu_in_action_valid),
@@ -288,45 +240,8 @@ crossbar #(
 
 
 
-//ALU_1
+//ALU_2 with stateful memory
 genvar gen_i;
-generate
-    //initialize 8 6B containers 
-    for(gen_i = 7; gen_i >= 0; gen_i = gen_i - 1) begin
-        alu_1 #(
-            .STAGE_ID(STAGE_ID),
-            .ACTION_LEN(),
-            .DATA_WIDTH(width_6B)
-        )alu_1_6B(
-            .clk(clk),
-            .rst_n(rst_n),
-            .action_in(alu_in_action[(gen_i+8+8+1+1)*ACT_LEN-1 -: ACT_LEN]),
-            .action_valid(alu_in_action_valid),
-            .operand_1_in(alu_in_6B_1[(gen_i+1) * width_6B -1 -: width_6B]),
-            .operand_2_in(alu_in_6B_2[(gen_i+1) * width_6B -1 -: width_6B]),
-            // .container_out(phv_out[width_4B*8+width_2B*8+356+width_6B*(gen_i+1)-1 -: width_6B]),
-            .container_out(output_6B[gen_i]),
-            .container_out_valid()
-        );
-
-        alu_1 #(
-            .STAGE_ID(STAGE_ID),
-            .ACTION_LEN(),
-            .DATA_WIDTH(width_2B)
-        )alu_1_2B(
-            .clk(clk),
-            .rst_n(rst_n),
-            .action_in(alu_in_action[(gen_i+1+1)*ACT_LEN-1 -: ACT_LEN]),
-            .action_valid(alu_in_action_valid),
-            .operand_1_in(alu_in_2B_1[(gen_i+1) * width_2B -1 -: width_2B]),
-            .operand_2_in(alu_in_2B_2[(gen_i+1) * width_2B -1 -: width_2B]),
-            // .container_out(phv_out[356+width_2B*(gen_i+1) -1 -: width_2B]),
-            .container_out(output_2B[gen_i]),
-            .container_out_valid()
-        );
-	end
-endgenerate
-
 alu_2 #(
     .STAGE_ID(STAGE_ID),
     .ACTION_LEN(),
@@ -337,23 +252,23 @@ alu_2 #(
     .clk(clk),
     .rst_n(rst_n),
     //input from sub_action
-    .action_in(alu_in_action[(7+8+1+1)*ACT_LEN-1 -: ACT_LEN]),
+    .action_in(alu_in_action[(63+1+1)*ACT_LEN-1 -: ACT_LEN]),
     .action_valid(alu_in_action_valid),
-    .operand_1_in(alu_in_4B_1[(7+1) * width_4B -1 -: width_4B]),
-    .operand_2_in(alu_in_4B_2[(7+1) * width_4B -1 -: width_4B]),
-    .operand_3_in(alu_in_4B_3[(7+1) * width_4B -1 -: width_4B]),
+    .operand_1_in(alu_in_4B_1[(63+1) * width_4B -1 -: width_4B]),
+    .operand_2_in(alu_in_4B_2[(63+1) * width_4B -1 -: width_4B]),
+    .operand_3_in(alu_in_4B_3[(63+1) * width_4B -1 -: width_4B]),
     .ready_out(alu_ready_out),
 	//
 	.page_tbl_out			(page_tbl_out),
 	.page_tbl_out_valid		(page_tbl_out_valid),
     //output to form PHV
-    .container_out_w(output_4B[7]),
+    .container_out_w(output_4B[63]),
     .container_out_valid(),
     .ready_in(ready_in)
 );
 
 generate
-    for(gen_i = 6; gen_i >= 0; gen_i = gen_i - 1) begin
+    for(gen_i = 62; gen_i >= 0; gen_i = gen_i - 1) begin
 		alu_1 #(
 		    .STAGE_ID(STAGE_ID),
 		    .ACTION_LEN(),
@@ -361,7 +276,7 @@ generate
 		)alu_1_4B(
 		    .clk(clk),
 		    .rst_n(rst_n),
-		    .action_in(alu_in_action[(gen_i+8+1+1)*ACT_LEN-1 -: ACT_LEN]),
+		    .action_in(alu_in_action[(gen_i+1+1)*ACT_LEN-1 -: ACT_LEN]),
 		    .action_valid(alu_in_action_valid),
 		    .operand_1_in(alu_in_4B_1[(gen_i+1) * width_4B -1 -: width_4B]),
 		    .operand_2_in(alu_in_4B_2[(gen_i+1) * width_4B -1 -: width_4B]),
@@ -385,7 +300,7 @@ alu_3 #(
     //input data shall be metadata & com_ins
     .comp_meta_data_in(alu_in_phv_remain_data),
     .comp_meta_data_valid_in(alu_in_valid),
-    .action_in(alu_in_action[24:0]),
+    .action_in(alu_in_action[63:0]),
     .action_valid_in(alu_in_action_valid),
 
     //output is the modified metadata plus comp_ins
@@ -401,194 +316,9 @@ alu_3 #(
     CONTROL PATH
 */
 
+// control path remains the same for now
 generate 
-	if (C_S_AXIS_DATA_WIDTH == 512) begin
-		/****control path for 512b*****/
-		wire [7:0]          mod_id; //module ID
-		wire [15:0]         control_flag; //dst udp port num
-		reg  [7:0]          c_index; //table index(addr)
-		reg                 c_wr_en; //enable table write(wen)
-		reg [15:0]			entry_reg;
-		
-		reg  [2:0]          c_state;
-		
-		localparam IDLE_C = 0,
-		           WRITE_C = 1,
-				   SU_WRITE_C = 2;
-		
-		assign mod_id = c_s_axis_tdata[368+:8];
-		assign control_flag = c_s_axis_tdata[335:320];
-		
-		//LE to BE switching
-		wire[C_S_AXIS_DATA_WIDTH-1:0] c_s_axis_tdata_swapped;
-		assign c_s_axis_tdata_swapped = {	c_s_axis_tdata[0+:8],
-											c_s_axis_tdata[8+:8],
-											c_s_axis_tdata[16+:8],
-											c_s_axis_tdata[24+:8],
-											c_s_axis_tdata[32+:8],
-											c_s_axis_tdata[40+:8],
-											c_s_axis_tdata[48+:8],
-											c_s_axis_tdata[56+:8],
-											c_s_axis_tdata[64+:8],
-											c_s_axis_tdata[72+:8],
-											c_s_axis_tdata[80+:8],
-											c_s_axis_tdata[88+:8],
-											c_s_axis_tdata[96+:8],
-											c_s_axis_tdata[104+:8],
-											c_s_axis_tdata[112+:8],
-											c_s_axis_tdata[120+:8],
-											c_s_axis_tdata[128+:8],
-											c_s_axis_tdata[136+:8],
-											c_s_axis_tdata[144+:8],
-											c_s_axis_tdata[152+:8],
-											c_s_axis_tdata[160+:8],
-											c_s_axis_tdata[168+:8],
-											c_s_axis_tdata[176+:8],
-											c_s_axis_tdata[184+:8],
-											c_s_axis_tdata[192+:8],
-											c_s_axis_tdata[200+:8],
-											c_s_axis_tdata[208+:8],
-											c_s_axis_tdata[216+:8],
-											c_s_axis_tdata[224+:8],
-											c_s_axis_tdata[232+:8],
-											c_s_axis_tdata[240+:8],
-											c_s_axis_tdata[248+:8],
-		                                    c_s_axis_tdata[256+:8],
-		                                    c_s_axis_tdata[264+:8],
-		                                    c_s_axis_tdata[272+:8],
-		                                    c_s_axis_tdata[280+:8],
-		                                    c_s_axis_tdata[288+:8],
-		                                    c_s_axis_tdata[296+:8],
-		                                    c_s_axis_tdata[304+:8],
-		                                    c_s_axis_tdata[312+:8],
-		                                    c_s_axis_tdata[320+:8],
-		                                    c_s_axis_tdata[328+:8],
-		                                    c_s_axis_tdata[336+:8],
-		                                    c_s_axis_tdata[344+:8],
-		                                    c_s_axis_tdata[352+:8],
-		                                    c_s_axis_tdata[360+:8],
-		                                    c_s_axis_tdata[368+:8],
-		                                    c_s_axis_tdata[376+:8],
-		                                    c_s_axis_tdata[384+:8],
-		                                    c_s_axis_tdata[392+:8],
-		                                    c_s_axis_tdata[400+:8],
-		                                    c_s_axis_tdata[408+:8],
-		                                    c_s_axis_tdata[416+:8],
-		                                    c_s_axis_tdata[424+:8],
-		                                    c_s_axis_tdata[432+:8],
-		                                    c_s_axis_tdata[440+:8],
-		                                    c_s_axis_tdata[448+:8],
-		                                    c_s_axis_tdata[456+:8],
-		                                    c_s_axis_tdata[464+:8],
-		                                    c_s_axis_tdata[472+:8],
-		                                    c_s_axis_tdata[480+:8],
-		                                    c_s_axis_tdata[488+:8],
-		                                    c_s_axis_tdata[496+:8],
-		                                    c_s_axis_tdata[504+:8]
-		                                };
-		
-		always @(posedge clk or negedge rst_n) begin
-		    if(~rst_n) begin
-		        c_wr_en <= 1'b0;
-		        c_index <= 4'b0;
-		
-		        c_m_axis_tdata <= 0;
-		        c_m_axis_tuser <= 0;
-		        c_m_axis_tkeep <= 0;
-		        c_m_axis_tvalid <= 0;
-		        c_m_axis_tlast <= 0;
-
-				entry_reg <= 0;
-		
-		        c_state <= IDLE_C;
-		    end
-		    else begin
-		        case(c_state)
-		            IDLE_C: begin
-		                if(c_s_axis_tvalid && mod_id[7:3] == STAGE_ID && mod_id[2:0] == ACTION_ID && control_flag == 16'hf2f1)begin
-		                    c_wr_en <= 1'b0;
-		                    c_index <= c_s_axis_tdata[384+:8];
-		
-		                    c_m_axis_tdata <= 0;
-		                    c_m_axis_tuser <= 0;
-		                    c_m_axis_tkeep <= 0;
-		                    c_m_axis_tvalid <= 0;
-		                    c_m_axis_tlast <= 0;
-		
-		                    c_state <= WRITE_C;
-		
-		                end
-		                else begin
-		                    c_wr_en <= 1'b0;
-		                    c_index <= 4'b0; 
-		
-		                    c_m_axis_tdata <= c_s_axis_tdata;
-		                    c_m_axis_tuser <= c_s_axis_tuser;
-		                    c_m_axis_tkeep <= c_s_axis_tkeep;
-		                    c_m_axis_tvalid <= c_s_axis_tvalid;
-		                    c_m_axis_tlast <= c_s_axis_tlast;
-		
-		                    c_state <= IDLE_C;
-		                end
-		            end
-		            //support full table flush
-					WRITE_C: begin
-						if(c_s_axis_tvalid) begin
-							c_wr_en <= 1'b1;
-							entry_reg <= c_s_axis_tdata_swapped[511 -: 16];
-							if(c_s_axis_tlast) begin
-								c_state <= IDLE_C;
-							end
-							else begin
-								c_state <= SU_WRITE_C;
-							end
-						end
-						else begin
-							c_wr_en <= 1'b0;
-						end
-					end
-
-					SU_WRITE_C: begin
-						if(c_s_axis_tvalid) begin
-							entry_reg <= c_s_axis_tdata_swapped[511 -: 16];
-							c_wr_en <= 1'b1;
-							c_index <= c_index + 1'b1;
-							if(c_s_axis_tlast) begin
-								c_state <= IDLE_C;
-							end
-							else begin
-								c_state <= SU_WRITE_C;
-							end
-						end
-						else begin
-							c_wr_en <= 1'b0;
-						end
-					end
-		        endcase
-		
-		    end
-		end
-		
-		
-		//page table
-		page_tbl_16w_32d
-		page_tbl_16w_32d
-		(
-		    //write
-		    .addra(c_index[4:0]),
-		    .clka(clk),
-		    .dina(entry_reg),
-		    .ena(1'b1),
-		    .wea(c_wr_en),
-		
-		    //match
-		    .addrb(act_vlan_in[8:4]),
-		    .clkb(clk),
-		    .doutb(page_tbl_out),
-		    .enb(1'b1)
-		);
-	end
-	else begin // control path for 256b
+	if (C_S_AXIS_DATA_WIDTH == 256) begin
 		wire [7:0]          mod_id; //module ID
 		wire [15:0]         control_flag; //dst udp port num
 		wire[C_S_AXIS_DATA_WIDTH-1:0] c_s_axis_tdata_swapped;
@@ -804,7 +534,5 @@ generate
 		);
 	end
 endgenerate
-
-
 
 endmodule

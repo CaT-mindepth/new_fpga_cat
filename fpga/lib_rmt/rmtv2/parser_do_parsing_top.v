@@ -5,7 +5,7 @@
 module parser_do_parsing_top #(
 	parameter C_AXIS_DATA_WIDTH = 512,
 	parameter C_AXIS_TUSER_WIDTH = 128,
-	parameter PKT_HDR_LEN = (6+4+2)*8*8+256, // check with the doc
+	parameter PKT_HDR_LEN = (6+4+2)*8*64+256, // check with the doc
 	parameter C_NUM_SEGS = 2,
 	parameter C_PARSER_RAM_WIDTH = 160,
 	parameter C_VLANID_WIDTH = 12

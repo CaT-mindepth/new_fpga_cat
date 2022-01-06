@@ -10,14 +10,14 @@ module rmt_wrapper #(
     parameter AXIL_STRB_WIDTH = (AXIL_DATA_WIDTH/8),
 	// AXI Stream parameters
 	// Slave
-	parameter C_S_AXIS_DATA_WIDTH = 512,
+	parameter C_S_AXIS_DATA_WIDTH = 256,
 	parameter C_S_AXIS_TUSER_WIDTH = 128,
 	// Master
 	// self-defined
-    parameter PHV_LEN = 48*8+32*8+16*8+256,
-    parameter KEY_LEN = 48*2+32*2+16*2+1,
-    parameter ACT_LEN = 25,
-    parameter KEY_OFF = 6*3+20,
+    parameter PHV_LEN = 48*64+32*64+16*64+256,
+    parameter KEY_LEN = 48*32+32*32+16*32+1,
+    parameter ACT_LEN = 64,
+    parameter KEY_OFF = 32*6*3+20,
 	parameter C_NUM_QUEUES = 4,
 	parameter C_VLANID_WIDTH = 12
 )
@@ -53,7 +53,7 @@ module rmt_wrapper #(
 integer idx;
 
 /*=================================================*/
-localparam PKT_VEC_WIDTH = (6+4+2)*8*8+256;
+localparam PKT_VEC_WIDTH = (6+4+2)*64*8+256;
 
 wire								stg0_phv_in_valid;
 wire [PKT_VEC_WIDTH-1:0]			stg0_phv_in;
@@ -214,40 +214,13 @@ assign s_axis_tready_f = !pkt_fifo_nearly_full[0] &&
 							!pkt_fifo_nearly_full[2] &&
 							!pkt_fifo_nearly_full[3];
 
-/*
-generate 
-	genvar i;
-	for (i=0; i<C_NUM_QUEUES; i=i+1) begin:
-		sub_pkt_fifo
-		fifo_generator_705b 
-		pkt_fifo (
-			.clk			(clk),                  // input wire clk
-  			.srst			(~aresetn),                // input wire srst
-  			.din			({parser_m_axis_tdata[i],
-								parser_m_axis_tuser[i],
-								parser_m_axis_tkeep[i],
-								parser_m_axis_tlast[i]}),                  // input wire [704 : 0] din
-  			.wr_en			(parser_m_axis_tvalid[i]),              // input wire wr_en
-  			.rd_en			(pkt_fifo_rd_en[i]),              // input wire rd_en
-  			.dout			({pkt_fifo_tdata_out[i],
-								pkt_fifo_tuser_out[i],
-								pkt_fifo_tkeep_out[i],
-								pkt_fifo_tlast_out[i]}),                // output wire [704 : 0] dout
-  			.full			(pkt_fifo_nearly_full[i]),                // output wire full
-  			.empty			(pkt_fifo_empty[i]),              // output wire empty
-  			.wr_rst_busy	(),  // output wire wr_rst_busy
-  			.rd_rst_busy	()  // output wire rd_rst_busy
-		);
-	end
-endgenerate
-*/
 generate 
 	genvar i;
 	for (i=0; i<C_NUM_QUEUES; i=i+1) begin:
 		sub_pkt_fifo
 		fallthrough_small_fifo #(
 			.WIDTH(C_S_AXIS_DATA_WIDTH+C_S_AXIS_TUSER_WIDTH+C_S_AXIS_DATA_WIDTH/8+1),
-			.MAX_DEPTH_BITS(6)
+			.MAX_DEPTH_BITS(10)
 		)
 		pkt_fifo (
 			.clk			(clk),                  // input wire clk
@@ -289,13 +262,13 @@ generate
 	for (i=0; i<C_NUM_QUEUES; i=i+1) begin:
 		sub_phv_fifo_1
 		fallthrough_small_fifo #(
-			.WIDTH(512),
-			.MAX_DEPTH_BITS(6)
+			.WIDTH(3200),
+			.MAX_DEPTH_BITS(10)
 		)
 		phv_fifo_1 (
 			.clk			(clk),
 			.reset			(~aresetn),
-			.din			(last_stg_phv_out[i][511:0]),
+			.din			(last_stg_phv_out[i][0 +: 3200]),
 			.wr_en			(last_stg_phv_out_valid[i]),
 			.rd_en			(phv_fifo_rd_en[i]),
 			.dout			(low_phv_out[i]),
@@ -303,20 +276,6 @@ generate
 			.nearly_full	(phv_fifo_nearly_full[i]),
 			.empty			(phv_fifo_empty[i])
 		);
-		/*
-		fifo_generator_512b 
-		phv_fifo_1 (
-		  .clk				(clk),                  // input wire clk
-		  .srst				(~aresetn),                // input wire srst
-		  .din				(last_stg_phv_out[i][511:0]),                  // input wire [511 : 0] din
-		  .wr_en			(last_stg_phv_out_valid[i]),              // input wire wr_en
-		  .rd_en			(phv_fifo_rd_en[i]),              // input wire rd_en
-		  .dout				(low_phv_out[i]),                // output wire [511 : 0] dout
-		  .full				(phv_fifo_nearly_full[i]),                // output wire full
-		  .empty			(phv_fifo_empty[i]),              // output wire empty
-		  .wr_rst_busy		(),  // output wire wr_rst_busy
-		  .rd_rst_busy		()  // output wire rd_rst_busy
-		);*/
 	end
 endgenerate
 
@@ -324,13 +283,13 @@ generate
 	for (i=0; i<C_NUM_QUEUES; i=i+1) begin:
 		sub_phv_fifo_2
 		fallthrough_small_fifo #(
-			.WIDTH(512),
-			.MAX_DEPTH_BITS(6)
+			.WIDTH(3200),
+			.MAX_DEPTH_BITS(10)
 		)
 		phv_fifo_2 (
 			.clk			(clk),
 			.reset			(~aresetn),
-			.din			(last_stg_phv_out[i][1023:512]),
+			.din			(last_stg_phv_out[i][3200+:3200]),
 			.wr_en			(last_stg_phv_out_valid[i]),
 			.rd_en			(phv_fifo_rd_en[i]),
 			.dout			(high_phv_out[i]),
@@ -338,20 +297,6 @@ generate
 			.nearly_full	(),
 			.empty			()
 		);
-		/*
-		fifo_generator_512b 
-		phv_fifo_2 (
-		  .clk				(clk),                  // input wire clk
-		  .srst				(~aresetn),                // input wire srst
-		  .din				(last_stg_phv_out[i][1023:512]),                  // input wire [521 : 0] din
-		  .wr_en			(last_stg_phv_out_valid[i]),              // input wire wr_en
-		  .rd_en			(phv_fifo_rd_en[i]),              // input wire rd_en
-		  .dout				(high_phv_out[i]),                // output wire [521 : 0] dout
-		  .full				(),                // output wire full
-		  .empty			(),              // output wire empty
-		  .wr_rst_busy		(),  // output wire wr_rst_busy
-		  .rd_rst_busy		()  // output wire rd_rst_busy
-		);*/
 	end
 endgenerate
 

@@ -2,11 +2,11 @@
 
 module alu_2 #(
     parameter STAGE_ID = 0,
-    parameter ACTION_LEN = 25,
+    parameter ACTION_LEN = 64,
     parameter DATA_WIDTH = 32,  //data width of the ALU
     parameter ACTION_ID = 3,
 
-	parameter C_S_AXIS_DATA_WIDTH = 512,
+	parameter C_S_AXIS_DATA_WIDTH = 256,
 	parameter C_S_AXIS_TUSER_WIDTH = 128
 )
 (

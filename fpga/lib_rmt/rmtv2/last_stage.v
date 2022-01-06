@@ -2,13 +2,14 @@
 
 
 module last_stage #(
-    parameter C_S_AXIS_DATA_WIDTH = 512,
+    parameter C_S_AXIS_DATA_WIDTH = 256,
     parameter C_S_AXIS_TUSER_WIDTH = 128,
     parameter STAGE_ID = 0,  // valid: 0-4
-    parameter PHV_LEN = 48*8+32*8+16*8+256,
-    parameter KEY_LEN = 48*2+32*2+16*2+1,
-    parameter ACT_LEN = 25,
-    parameter KEY_OFF = 6*3+20,
+    parameter PHV_LEN = 48*64+32*64+16*64+256,
+    parameter KEY_LEN = 48*32+32*32+16*32+1,
+    parameter ACT_LEN = 64,
+	parameter NUM_PHV_CONT = 193,
+    parameter KEY_OFF = 32*6*3+20,
 	parameter C_NUM_QUEUES = 4,
 	parameter C_VLANID_WIDTH = 12
 )
@@ -85,12 +86,12 @@ wire 										c_s_axis_tlast_2;
 
 
 //lookup_engine to action_engine
-wire [ACT_LEN*25-1:0]        lookup2action_action;
+wire [ACT_LEN*NUM_PHV_CONT-1:0]        lookup2action_action;
 wire                         lookup2action_action_valid;
 wire [PHV_LEN-1:0]           lookup2action_phv;
 wire                         action2lookup_ready;
 
-reg [ACT_LEN*25-1:0]        lookup2action_action_r;
+reg [ACT_LEN*NUM_PHV_CONT-1:0]        lookup2action_action_r;
 reg                         lookup2action_action_valid_r;
 reg [PHV_LEN-1:0]           lookup2action_phv_r;
 
