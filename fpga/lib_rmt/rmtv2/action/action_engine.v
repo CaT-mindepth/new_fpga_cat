@@ -212,7 +212,7 @@ end
 crossbar #(
     .STAGE_ID(STAGE_ID),
     .PHV_LEN(),
-    .ACT_LEN(),
+    .ACT_LEN()
 )cross_bar(
     .clk(clk),
     .rst_n(rst_n),

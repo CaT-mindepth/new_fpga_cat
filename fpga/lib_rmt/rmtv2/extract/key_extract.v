@@ -3,10 +3,10 @@ module key_extract #(
     parameter C_S_AXIS_DATA_WIDTH = 512,
     parameter C_S_AXIS_TUSER_WIDTH = 128,
     parameter STAGE_ID = 0,
-    parameter PHV_LEN = 48*64+32*64+16*64+256,
-    parameter KEY_LEN = 48*32+32*32+16*32+1,
+    parameter PHV_LEN = 4*8*64+256,
+    parameter KEY_LEN = 4*8*8+1,
     // format of KEY_OFF entry: |--3(6B)--|--3(6B)--|--3(4B)--|--3(4B)--|--3(2B)--|--3(2B)--|
-    parameter KEY_OFF = 32*6*3+20,
+    parameter KEY_OFF = 8*6+20,
     parameter KEY_EX_ID = 1,
 	parameter C_VLANID_WIDTH = 12
     )(
@@ -32,16 +32,16 @@ module key_extract #(
 
 integer i;
 
-localparam WIDTH_2B = 16;
+// localparam WIDTH_2B = 16;
 localparam WIDTH_4B = 32;
-localparam WIDTH_6B = 48;
+// localparam WIDTH_6B = 48;
 
 //reg [KEY_LEN-1:0] key_out;
 
 //24 fields to be retrived from the pkt header
-reg [WIDTH_2B-1:0]		cont_2B [0:63];
+// reg [WIDTH_2B-1:0]		cont_2B [0:63];
 reg [WIDTH_4B-1:0]		cont_4B [0:63];
-reg [WIDTH_6B-1:0]		cont_6B [0:63];
+// reg [WIDTH_6B-1:0]		cont_6B [0:63];
 
 // wire [19:0]				com_op;
 // wire [47:0]				com_op_1, com_op_2;
@@ -84,9 +84,9 @@ always @(posedge clk) begin
 
 
 		for (i=0; i<64; i=i+1) begin
-			cont_6B[i] <= 0;
+//			cont_6B[i] <= 0;
 			cont_4B[i] <= 0;
-			cont_2B[i] <= 0;
+//			cont_2B[i] <= 0;
 		end
 
 		phv_out <= 0;
@@ -105,9 +105,9 @@ always @(posedge clk) begin
 					phv_out <= phv_in;
 
 					for (i=0; i<64; i=i+1) begin
-						cont_6B[63-i] <= phv_in[PHV_LEN-1 - i*WIDTH_6B -: WIDTH_6B];
-						cont_4B[64-i] <= phv_in[PHV_LEN-1 - 64*WIDTH_6B - i*WIDTH_4B -: WIDTH_4B];
-						cont_2B[64-i] <= phv_in[PHV_LEN-1 - 64*WIDTH_6B - 64*WIDTH_4B - i*WIDTH_2B -: WIDTH_4B];
+// 						cont_6B[63-i] <= phv_in[PHV_LEN-1 - i*WIDTH_6B -: WIDTH_6B];
+						cont_4B[64-i] <= phv_in[PHV_LEN-1 - i*WIDTH_4B -: WIDTH_4B];
+//						cont_2B[64-i] <= phv_in[PHV_LEN-1 - 64*WIDTH_6B - 64*WIDTH_4B - i*WIDTH_2B -: WIDTH_4B];
 					end
 
 					state <= CYCLE_1;
@@ -118,10 +118,10 @@ always @(posedge clk) begin
 				end
 			end
 			CYCLE_1: begin
-				for (i=0; i<32; i=i+1) begin
-					key_out[KEY_LEN-1 - i*WIDTH_6B -: WIDTH_6B] <= cont_6B[key_offset_r[KEY_OFF-1 - i*6 -: 6]];
-					key_out[KEY_LEN-1 - 32*WIDTH_6B - i*WIDTH_4B -: WIDTH_4B] <= cont_4B[key_offset_r[KEY_OFF-1 - 32*6 - i*6 -: 6]];
-					key_out[KEY_LEN-1 - 32*WIDTH_6B - 32*WIDTH_4B - i*WIDTH_2B -: WIDTH_2B] <= cont_4B[key_offset_r[KEY_OFF-1 - 32*6 - 32*6 - i*6 -: 6]];
+				for (i=0; i<8; i=i+1) begin
+//					key_out[KEY_LEN-1 - i*WIDTH_6B -: WIDTH_6B] <= cont_6B[key_offset_r[KEY_OFF-1 - i*6 -: 6]];
+					key_out[KEY_LEN-1 - i*WIDTH_4B -: WIDTH_4B] <= cont_4B[key_offset_r[KEY_OFF-1 - i*6 -: 6]];
+//					key_out[KEY_LEN-1 - 32*WIDTH_6B - 32*WIDTH_4B - i*WIDTH_2B -: WIDTH_2B] <= cont_4B[key_offset_r[KEY_OFF-1 - 32*6 - 32*6 - i*6 -: 6]];
 				end
 
 				key_out[0] <= 1'b1;

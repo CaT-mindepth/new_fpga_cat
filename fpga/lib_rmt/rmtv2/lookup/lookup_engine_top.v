@@ -4,9 +4,9 @@ module lookup_engine_top #(
     parameter C_S_AXIS_DATA_WIDTH = 256,
     parameter C_S_AXIS_TUSER_WIDTH = 128,
     parameter STAGE_ID = 0,
-    parameter PHV_LEN = 48*64+32*64+16*64+256,
-    parameter KEY_LEN = 48*32+32*32+16*32+1,
-    parameter ACT_LEN = 64*193,
+    parameter PHV_LEN = 32*64+256,
+    parameter KEY_LEN = 8*32+1,
+    parameter ACT_LEN = 64*65,
     parameter LOOKUP_ID = 2,
 	parameter C_VLANID_WIDTH = 12
 )

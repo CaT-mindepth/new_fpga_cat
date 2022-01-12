@@ -4,11 +4,13 @@ module lke_cam_part #(
     parameter C_S_AXIS_DATA_WIDTH = 512,
     parameter C_S_AXIS_TUSER_WIDTH = 128,
     parameter STAGE_ID = 0,
-    parameter PHV_LEN = 48*64+32*64+16*64+256,
-    parameter KEY_LEN = 48*32+32*32+16*32+1,
-    parameter ACT_LEN = 64*193,
+    parameter PHV_LEN = 32*64+256,
+    parameter KEY_LEN = 8*32+1,
+    parameter ACT_LEN = 64*65,
     parameter LOOKUP_ID = 2,
-	parameter C_VLANID_WIDTH = 12
+	parameter C_VLANID_WIDTH = 12,
+	parameter C_CAM_WIDTH = KEY_LEN+12,
+	parameter C_CAM_DEPTH = 256
 )
 (
     input clk,
@@ -24,7 +26,7 @@ module lke_cam_part #(
     // output to the ram part
 	output reg [PHV_LEN-1:0]					phv_out,
 	output reg									phv_out_valid,
-	output reg [5:0]							match_addr_out,
+	output reg [7:0]							match_addr_out,
 	output reg									if_match,
 	input										ready_in,
 
@@ -51,12 +53,8 @@ reg [PHV_LEN-1:0] phv_reg;
 reg [2:0] lookup_state;
 
 wire [11:0] vlan_id;
-
 assign vlan_id = phv_in[140:129];
 
-wire [204:0] dbg_input;
-
-assign dbg_input = {vlan_id[3:0], vlan_id[11:4], extract_key};
 
 /********intermediate variables declared here********/
 
@@ -108,7 +106,7 @@ always @(posedge clk or negedge rst_n) begin
 
 					if(match == 1'b0) begin // CAM miss
 						if_match <= 0;
-						match_addr_out <= 4'hf;
+						match_addr_out <= 8'hff;
                 	end
                 	else begin // CAM hit
 						if_match <= 1;
@@ -128,7 +126,7 @@ always @(posedge clk or negedge rst_n) begin
 
 					if(match == 1'b0) begin // CAM miss
 						if_match <= 0;
-						match_addr_out <= 4'hf;
+						match_addr_out <= 8'hff;
                 	end
                 	else begin // CAM hit
 						if_match <= 1;
@@ -497,7 +495,7 @@ generate
 
 		reg [7:0]							c_index_cam_next, c_index_act_next;
 		reg									c_wr_en_cam_next, c_wr_en_act_next;
-		reg [3072+1+12:0]							c_wr_cam_data, c_wr_cam_data_next;
+		reg [C_CAM_WIDTH-1:0]				c_wr_cam_data, c_wr_cam_data_next;
 		reg [ACT_LEN-1:0]					c_wr_act_data, c_wr_act_data_next;
 
 		localparam CAM_LEN = 3072+1+12;
@@ -566,19 +564,19 @@ generate
 					end
 				end
 				`WRITE_CAM(CAM_TMP_ENTRY, CAM_TMP_ENTRY_1, 0)
-				`WRITE_CAM(CAM_TMP_ENTRY_1, CAM_TMP_ENTRY_2, 1)
-				`WRITE_CAM(CAM_TMP_ENTRY_2, CAM_TMP_ENTRY_3, 2)
-				`WRITE_CAM(CAM_TMP_ENTRY_3, CAM_TMP_ENTRY_4, 3)
-				`WRITE_CAM(CAM_TMP_ENTRY_4, CAM_TMP_ENTRY_5, 4)
-				`WRITE_CAM(CAM_TMP_ENTRY_5, CAM_TMP_ENTRY_6, 5)
-				`WRITE_CAM(CAM_TMP_ENTRY_6, CAM_TMP_ENTRY_7, 6)
-				`WRITE_CAM(CAM_TMP_ENTRY_7, CAM_TMP_ENTRY_8, 7)
-				`WRITE_CAM(CAM_TMP_ENTRY_8, CAM_TMP_ENTRY_9, 8)
-				`WRITE_CAM(CAM_TMP_ENTRY_9, CAM_TMP_ENTRY_10, 9)
-				`WRITE_CAM(CAM_TMP_ENTRY_10, CAM_TMP_ENTRY_11, 10)
-				`WRITE_CAM(CAM_TMP_ENTRY_11, CAM_TMP_ENTRY_12, 11)
-				`WRITE_CAM(CAM_TMP_ENTRY_12, CAM_TMP_ENTRY_13, 12)
-				CAM_TMP_ENTRY_13: begin
+				// `WRITE_CAM(CAM_TMP_ENTRY_1, CAM_TMP_ENTRY_2, 1)
+				// `WRITE_CAM(CAM_TMP_ENTRY_2, CAM_TMP_ENTRY_3, 2)
+				// `WRITE_CAM(CAM_TMP_ENTRY_3, CAM_TMP_ENTRY_4, 3)
+				// `WRITE_CAM(CAM_TMP_ENTRY_4, CAM_TMP_ENTRY_5, 4)
+				// `WRITE_CAM(CAM_TMP_ENTRY_5, CAM_TMP_ENTRY_6, 5)
+				// `WRITE_CAM(CAM_TMP_ENTRY_6, CAM_TMP_ENTRY_7, 6)
+				// `WRITE_CAM(CAM_TMP_ENTRY_7, CAM_TMP_ENTRY_8, 7)
+				// `WRITE_CAM(CAM_TMP_ENTRY_8, CAM_TMP_ENTRY_9, 8)
+				// `WRITE_CAM(CAM_TMP_ENTRY_9, CAM_TMP_ENTRY_10, 9)
+				// `WRITE_CAM(CAM_TMP_ENTRY_10, CAM_TMP_ENTRY_11, 10)
+				// `WRITE_CAM(CAM_TMP_ENTRY_11, CAM_TMP_ENTRY_12, 11)
+				// `WRITE_CAM(CAM_TMP_ENTRY_12, CAM_TMP_ENTRY_13, 12)
+				CAM_TMP_ENTRY_1: begin
 					if (c_s_axis_tvalid) begin
 						c_wr_en_cam_next = 1; // next clk to write
 						c_wr_cam_data_next[0 +: 13] = c_s_axis_tdata_swapped[255-:13];
@@ -673,9 +671,9 @@ generate
 		if (STAGE_ID == 4) begin
 			// tcam1 for lookup
         	cam_top # ( 
-        	    .C_DEPTH			(64),
+        	    .C_DEPTH			(C_CAM_DEPTH),
         	    // .C_WIDTH			(256),
-        	    .C_WIDTH			(3072+1+12), // 192+1+12
+        	    .C_WIDTH			(C_CAM_WIDTH), // 192+1+12
         	    .C_MEM_INIT			(0)
         	    // .C_MEM_INIT_FILE	("./cam_init_file.mif")
         	)
@@ -696,7 +694,7 @@ generate
         	    //.DIN				(lookup_din),
 
         	    .WE                 (c_wr_en_cam),
-        	    .WR_ADDR            (c_index_cam[5:0]),
+        	    .WR_ADDR            (c_index_cam),
         	    // .WR_ADDR            (c_index_cam),
         	    .DATA_MASK          (),  //TODO do we need ternary matching?
         	    .DIN                (c_wr_cam_data),
@@ -706,9 +704,9 @@ generate
 		else begin
 			// tcam1 for lookup
         	cam_top # ( 
-        	    .C_DEPTH			(64),
+        	    .C_DEPTH			(C_CAM_DEPTH),
         	    // .C_WIDTH			(256),
-        	    .C_WIDTH			(3072+1+12), // 192+1+12
+        	    .C_WIDTH			(C_CAM_WIDTH), // 192+1+12
         	    .C_MEM_INIT			(0)
         	    // .C_MEM_INIT_FILE	("./cam_init_file.mif")
         	)
@@ -729,7 +727,7 @@ generate
         	    //.DIN				(lookup_din),
 
         	    .WE                 (c_wr_en_cam),
-        	    .WR_ADDR            (c_index_cam[5:0]),
+        	    .WR_ADDR            (c_index_cam),
         	    // .WR_ADDR            (c_index_cam),
         	    .DATA_MASK          (),  //TODO do we need ternary matching?
         	    .DIN                (c_wr_cam_data),

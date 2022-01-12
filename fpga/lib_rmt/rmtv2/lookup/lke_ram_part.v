@@ -5,7 +5,6 @@ module lke_ram_part #(
     parameter C_S_AXIS_TUSER_WIDTH = 128,
     parameter STAGE_ID = 0,
     parameter PHV_LEN = 4*8*64+256,
-    parameter KEY_LEN = 48*32+32*32+16*32+1,
 	parameter C_NUM_PHVS = 64+1,
     parameter ACT_LEN = 64*C_NUM_PHVS,
     parameter LOOKUP_ID = 2,
@@ -18,7 +17,7 @@ module lke_ram_part #(
     //output from key extractor
     input [PHV_LEN-1:0]							phv_in,
 	input										phv_valid,
-	input [5:0]									match_addr,
+	input [7:0]									match_addr,
 	input										if_match,
 	output										ready_out,
 
@@ -418,9 +417,10 @@ generate
         // 	.C_LOAD_INIT_FILE	(1)
         // )
         blk_mem_gen_1
-        act_ram_625w_16d
+        act_ram_4160w_256d
         (
-            .addra(c_index_act[5:0]),
+            // .addra(c_index_act[5:0]),
+            .addra(c_index_act),
             .clka(clk),
             .dina(c_wr_act_data),
             .ena(1'b1), // always set to 1
