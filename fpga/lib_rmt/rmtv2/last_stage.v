@@ -11,7 +11,8 @@ module last_stage #(
     parameter KEY_OFF = 8*6+20,
 	parameter C_NUM_QUEUES = 4,
 	parameter NUM_PHV_CONT = 65,
-	parameter C_VLANID_WIDTH = 12
+	parameter C_VLANID_WIDTH = 12,
+	parameter NUM_SUB_UNIT = 8
 )
 (
     input									axis_clk,
@@ -65,13 +66,35 @@ wire 										c_s_axis_tvalid_1;
 wire 										c_s_axis_tlast_1;
 
 //lookup_engine to action_engine
-wire [ACT_LEN*NUM_PHV_CONT-1:0]				match2action_action;
-reg [ACT_LEN*NUM_PHV_CONT-1:0]				match2action_action_r;
-wire										match2action_action_valid;
-reg											match2action_action_valid_r;
+wire [ACT_LEN*NUM_PHV_CONT-1:0]				match2action_action[NUM_SUB_UNIT-1:0];
+wire										match2action_action_valid[NUM_SUB_UNIT-1:0];
+
 wire [PHV_LEN-1:0]							match2action_phv;
 reg [PHV_LEN-1:0]							match2action_phv_r;
 wire										action2match_ready;
+
+wire [ACT_LEN*NUM_PHV_CONT-1:0]				match2action_action_all;
+reg [ACT_LEN*NUM_PHV_CONT-1:0]				match2action_action_all_r;
+wire										match2action_action_valid_all;
+reg											match2action_action_valid_all_r;
+
+assign match2action_action_all = match2action_action[0] || 
+									match2action_action[1] ||
+									match2action_action[2] ||
+									match2action_action[3] ||
+									match2action_action[4] ||
+									match2action_action[5] ||
+									match2action_action[6] ||
+									match2action_action[7];
+
+assign match2action_action_all_valid = match2action_action_valid[0] ||
+										match2action_action_valid[1] ||
+										match2action_action_valid[2] ||
+										match2action_action_valid[3] ||
+										match2action_action_valid[4] ||
+										match2action_action_valid[5] ||
+										match2action_action_valid[6] ||
+										match2action_action_valid[7];
 
 wire										phv_out_valid_from_ae;
 wire [PHV_LEN-1:0]							phv_out;
@@ -84,12 +107,12 @@ wire						act_vlan_ready;
 
 
 //
-
-multi_match #(
+sub_match_unit #(
     .C_S_AXIS_DATA_WIDTH(C_S_AXIS_DATA_WIDTH),
     .C_S_AXIS_TUSER_WIDTH(C_S_AXIS_TUSER_WIDTH),
-    .STAGE_ID(STAGE_ID)
-)multi_match_ins (
+    .STAGE_ID(STAGE_ID),
+	.SUB_UNIT_ID(0)
+) sub_match_ins0 (
     .clk			(axis_clk),
     .rst_n			(aresetn),
     .phv_in			(phv_in),
@@ -106,8 +129,8 @@ multi_match #(
     // .key_out_masked(key2lookup_key),
     // .key_valid_out(key2lookup_key_valid),
     // .ready_in(lookup2key_ready),
-	.action				(match2action_action),
-	.action_valid		(match2action_action_valid),
+	.action				(match2action_action[0]),
+	.action_valid		(match2action_action_valid[0]),
 	.phv_out			(match2action_phv),
 	.ready_in			(action2match_ready),
 
@@ -128,6 +151,58 @@ multi_match #(
 	.c_m_axis_tvalid(c_s_axis_tvalid_1),
 	.c_m_axis_tlast(c_s_axis_tlast_1)
 );
+//
+genvar idx;
+
+generate 
+	for (idx=1; idx<NUM_SUB_UNIT; idx=idx+1) begin:
+		sub_match
+		sub_match_unit #(
+		    .C_S_AXIS_DATA_WIDTH(C_S_AXIS_DATA_WIDTH),
+		    .C_S_AXIS_TUSER_WIDTH(C_S_AXIS_TUSER_WIDTH),
+		    .STAGE_ID(STAGE_ID),
+			.SUB_UNIT_ID(idx)
+		) sub_match_ins (
+		    .clk			(axis_clk),
+		    .rst_n			(aresetn),
+		    .phv_in			(phv_in),
+		    .phv_valid_in	(phv_in_valid),
+		    .ready_out		(stage_ready_out),
+		
+			.vlan_in		(vlan_in),
+			.vlan_in_valid	(vlan_valid_in),
+			.vlan_ready		(vlan_ready_out),
+		
+			//
+		    // .phv_out(key2lookup_phv),
+		    // .phv_valid_out(key2lookup_phv_valid),
+		    // .key_out_masked(key2lookup_key),
+		    // .key_valid_out(key2lookup_key_valid),
+		    // .ready_in(lookup2key_ready),
+			.action				(match2action_action[idx]),
+			.action_valid		(match2action_action_valid[idx]),
+			.phv_out			(),
+			.ready_in			(action2match_ready),
+		
+			.act_vlan_out		(),
+			.act_vlan_out_valid	(),
+			.act_vlan_ready		(),
+		
+		    //control path
+		    .c_s_axis_tdata(c_s_axis_tdata),
+			.c_s_axis_tuser(c_s_axis_tuser),
+			.c_s_axis_tkeep(c_s_axis_tkeep),
+			.c_s_axis_tvalid(c_s_axis_tvalid),
+			.c_s_axis_tlast(c_s_axis_tlast),
+		
+		    .c_m_axis_tdata(),
+			.c_m_axis_tuser(),
+			.c_m_axis_tkeep(),
+			.c_m_axis_tvalid(),
+			.c_m_axis_tlast()
+		);
+	end
+endgenerate
 
 action_engine #(
     .STAGE_ID(STAGE_ID),
@@ -141,9 +216,9 @@ action_engine #(
 
     //signals from lookup to ALUs
     .phv_in(match2action_phv_r),
-    .phv_valid_in(match2action_action_valid_r),
-    .action_in(match2action_action_r),
-    .action_valid_in(match2action_action_valid_r),
+    .phv_valid_in(match2action_action_all_valid_r),
+    .action_in(match2action_action_all_r),
+    .action_valid_in(match2action_action_all_valid_r),
     .ready_out(action2match_ready),
 
     //signals output from ALUs
@@ -188,15 +263,20 @@ assign phv_out_valid_3 = (phv_out[144]==1?1:0) & phv_out_valid_from_ae;
 
 always @(posedge axis_clk) begin
 	if (~aresetn) begin
-		match2action_action_r <= 0;
-		match2action_action_valid_r <= 0;
+		match2action_action_all_r <= 0;
+		match2action_action_valid_all_r <= 0;
 		match2action_phv_r <= 0;
 
+		act_vlan_out_r <= 0;
+		act_vlan_out_valid_r <= 0;
 	end
 	else begin
-		match2action_action_r <= match2action_action;
-		match2action_action_valid_r <= match2action_action_valid;
+		match2action_action_all_r <= match2action_action_all;
+		match2action_action_valid_all_r <= match2action_action_all_valid;
 		match2action_phv_r <= match2action_phv;
+
+		act_vlan_out_r <= act_vlan_out;
+		act_vlan_out_valid_r <= act_vlan_out_valid;
 	end
 end
 

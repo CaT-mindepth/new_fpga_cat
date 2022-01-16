@@ -8,7 +8,8 @@ module key_extract_top #(
 	// 8 from 64 (6-bit index) PHV containers + comparison op
     parameter KEY_OFF = 8*6+20,
     parameter KEY_EX_ID = 1,
-	parameter C_VLANID_WIDTH = 12
+	parameter C_VLANID_WIDTH = 12,
+	parameter SUB_UNIT_ID = 0
     )(
     input                               clk,
     input                               rst_n,
@@ -157,6 +158,7 @@ extractor
 //======================================================================================
 wire [7:0]          mod_id; //module ID
 wire [3:0]          resv;
+wire [3:0]			sub_unit_id;
 wire [15:0]         control_flag; //dst udp port num
 reg  [7:0]          c_index; //table index(addr)
 reg                 c_wr_en_off; //enable table write(wena)
@@ -217,6 +219,7 @@ generate
         //4'b0 for key offset
         //4'b1 for key mask
         assign resv = c_s_axis_tdata[120+:4];
+		assign sub_unit_id = c_s_axis_tdata[124+:4];
         assign control_flag = c_s_axis_tdata[64+:16];
 
 		reg [7:0] c_index_next;
@@ -274,6 +277,7 @@ generate
 				end
 				PARSE_C: begin // 2nd segment
 					if (mod_id[7:3] == STAGE_ID && mod_id[2:0] == KEY_EX_ID &&
+						sub_unit_id == SUB_UNIT_ID && 
 							control_flag == 16'hf2f1 && c_s_axis_tvalid) begin
 						if (resv == 4'b0 && c_s_axis_tvalid) begin
 							c_index_next = c_s_axis_tdata[128+:8];

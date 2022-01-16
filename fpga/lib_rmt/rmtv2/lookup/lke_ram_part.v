@@ -8,7 +8,8 @@ module lke_ram_part #(
 	parameter C_NUM_PHVS = 64+1,
     parameter ACT_LEN = 64*C_NUM_PHVS,
     parameter LOOKUP_ID = 2,
-	parameter C_VLANID_WIDTH = 12
+	parameter C_VLANID_WIDTH = 12,
+	parameter SUB_UNIT_ID = 0
 )
 (
     input clk,
@@ -148,6 +149,7 @@ wire [7:0]          mod_id; //module ID
 //NOTE: we don't need tcam entry mask
 //4'b2 for action table entry;
 wire [3:0]          resv; //recog between tcam and action
+wire [3:0]			sub_unit_id;
 wire [15:0]         control_flag; //dst udp port num
 
 
@@ -227,6 +229,7 @@ generate
 
         assign mod_id = c_s_axis_tdata[112+:8];
         assign resv = c_s_axis_tdata[120+:4];
+		assign sub_unit_id = c_s_axis_tdata[124+:4];
         assign control_flag = c_s_axis_tdata[64+:16];
 		// 
 		reg [9:0] c_state_next;
@@ -290,7 +293,7 @@ generate
 					end
 				end
 				PARSE_C: begin // 2nd segment
-					if (mod_id[7:3] == STAGE_ID && mod_id[2:0] == LOOKUP_ID && 
+					if (mod_id[7:3] == STAGE_ID && mod_id[2:0] == LOOKUP_ID && sub_unit_id == SUB_UNIT_ID &&
 						control_flag == 16'hf2f1 && c_s_axis_tvalid && resv!=4'b0) begin
 						// should not emit segment
 						c_index_act_next = c_s_axis_tdata[128+:8];

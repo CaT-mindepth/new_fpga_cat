@@ -1,17 +1,17 @@
 `timescale 1ns / 1ps
 
-module multi_match #(
+module sub_match_unit #(
 	parameter C_S_AXIS_DATA_WIDTH = 256,
 	parameter C_S_AXIS_TUSER_WIDTH = 128,
 	parameter STAGE_ID = 0,
-	parameter INDIRECTION_ID = 8,
+	parameter INDIRECTION_ID = 6,
 	parameter PHV_LEN = 4*8*64+256,
 	parameter KEY_LEN = 8*32+1,
 	parameter KEY_OFF = 8*6+20,
 	parameter C_NUM_PHVS = 64+1,
     parameter ACT_LEN = 64*C_NUM_PHVS,
 	parameter C_VLANID_WIDTH = 12,
-	parameter C_NUM_SUBMATCH = 8
+	parameter SUB_UNIT_ID = 1
 )
 (
 	input				clk,
@@ -57,17 +57,17 @@ module multi_match #(
 );
 
 // ctrl path
-wire [C_S_AXIS_DATA_WIDTH-1:0]		ctrl_key_axis_tdata[C_NUM_SUBMATCH-1-1:0];
-wire [C_S_AXIS_TUSER_WIDTH-1:0]		ctrl_key_axis_tuser[C_NUM_SUBMATCH-1-1:0];
-wire [C_S_AXIS_DATA_WIDTH/8-1:0]	ctrl_key_axis_tkeep[C_NUM_SUBMATCH-1-1:0];
-wire								ctrl_key_axis_tlast[C_NUM_SUBMATCH-1-1:0];
-wire								ctrl_key_axis_tvalid[C_NUM_SUBMATCH-1-1:0];
+wire [C_S_AXIS_DATA_WIDTH-1:0]		ctrl_key_axis_tdata;
+wire [C_S_AXIS_TUSER_WIDTH-1:0]		ctrl_key_axis_tuser;
+wire [C_S_AXIS_DATA_WIDTH/8-1:0]	ctrl_key_axis_tkeep;
+wire								ctrl_key_axis_tlast;
+wire								ctrl_key_axis_tvalid;
 
-wire [C_S_AXIS_DATA_WIDTH-1:0]		ctrl_cam_axis_tdata[C_NUM_SUBMATCH-1:0];
-wire [C_S_AXIS_TUSER_WIDTH-1:0]		ctrl_cam_axis_tuser[C_NUM_SUBMATCH-1:0];
-wire [C_S_AXIS_DATA_WIDTH/8-1:0]	ctrl_cam_axis_tkeep[C_NUM_SUBMATCH-1:0];
-wire								ctrl_cam_axis_tlast[C_NUM_SUBMATCH-1:0];
-wire								ctrl_cam_axis_tvalid[C_NUM_SUBMATCH-1:0];
+wire [C_S_AXIS_DATA_WIDTH-1:0]		ctrl_cam_axis_tdata;
+wire [C_S_AXIS_TUSER_WIDTH-1:0]		ctrl_cam_axis_tuser;
+wire [C_S_AXIS_DATA_WIDTH/8-1:0]	ctrl_cam_axis_tkeep;
+wire								ctrl_cam_axis_tlast;
+wire								ctrl_cam_axis_tvalid;
 
 wire [C_S_AXIS_DATA_WIDTH-1:0]		ctrl_ram_axis_tdata;
 wire [C_S_AXIS_TUSER_WIDTH-1:0]		ctrl_ram_axis_tuser;
@@ -76,16 +76,16 @@ wire								ctrl_ram_axis_tlast;
 wire								ctrl_ram_axis_tvalid;
 
 //
-wire [PHV_LEN-1:0]					key_phv_out[C_NUM_SUBMATCH-1:0];
-wire 								key_phv_out_valid[C_NUM_SUBMATCH-1:0];
-wire [KEY_LEN-1:0]					key_key_out_masked[C_NUM_SUBMATCH-1:0];
-wire								key_key_valid_out[C_NUM_SUBMATCH-1:0];
+wire [PHV_LEN-1:0]					key_phv_out;
+wire 								key_phv_out_valid;
+wire [KEY_LEN-1:0]					key_key_out_masked;
+wire								key_key_valid_out;
 
-wire								cam_ready_in[C_NUM_SUBMATCH-1:0];
-wire [PHV_LEN-1:0]					cam_phv_out[C_NUM_SUBMATCH-1:0];
-wire								cam_phv_out_valid[C_NUM_SUBMATCH-1:0];
-wire [7:0]							cam_match_addr_out[C_NUM_SUBMATCH-1:0];
-wire								cam_if_match[C_NUM_SUBMATCH-1:0];
+wire								cam_ready_in;
+wire [PHV_LEN-1:0]					cam_phv_out;
+wire								cam_phv_out_valid;
+wire [7:0]							cam_match_addr_out;
+wire								cam_if_match;
 
 wire								lke_ram_ready_out;
 
@@ -93,9 +93,10 @@ wire								lke_ram_ready_out;
 genvar idx;
 
 key_extract_top #(
-	.STAGE_ID(STAGE_ID)
+	.STAGE_ID(STAGE_ID),
+	.SUB_UNIT_ID(SUB_UNIT_ID)
 )
-extractor_0 (
+extractor (
 	.clk			(clk),
 	.rst_n			(rst_n),
 
@@ -107,11 +108,11 @@ extractor_0 (
 	.vlan_ready		(vlan_ready),
 
 	// 
-	.phv_out		(key_phv_out[0]),
-	.phv_valid_out	(key_phv_out_valid[0]),
-	.key_out_masked	(key_key_out_masked[0]),
-	.key_valid_out	(key_key_valid_out[0]),
-	.ready_in		(cam_ready_in[0]),
+	.phv_out		(key_phv_out),
+	.phv_valid_out	(key_phv_out_valid),
+	.key_out_masked	(key_key_out_masked),
+	.key_valid_out	(key_key_valid_out),
+	.ready_in		(cam_ready_in),
 
 	// ctrl path
 	.c_s_axis_tdata		(c_s_axis_tdata),
@@ -120,128 +121,49 @@ extractor_0 (
 	.c_s_axis_tvalid	(c_s_axis_tvalid),
 	.c_s_axis_tlast		(c_s_axis_tlast),
 
-	.c_m_axis_tdata		(ctrl_key_axis_tdata[0]),
-	.c_m_axis_tuser		(ctrl_key_axis_tuser[0]),
-	.c_m_axis_tkeep		(ctrl_key_axis_tkeep[0]),
-	.c_m_axis_tvalid	(ctrl_key_axis_tvalid[0]),
-	.c_m_axis_tlast		(ctrl_key_axis_tlast[0])
+	.c_m_axis_tdata		(ctrl_key_axis_tdata),
+	.c_m_axis_tuser		(ctrl_key_axis_tuser),
+	.c_m_axis_tkeep		(ctrl_key_axis_tkeep),
+	.c_m_axis_tvalid	(ctrl_key_axis_tvalid),
+	.c_m_axis_tlast		(ctrl_key_axis_tlast)
 );
 
 lke_cam_part #(
-	.STAGE_ID(STAGE_ID)
+	.STAGE_ID(STAGE_ID),
+	.SUB_UNIT_ID(SUB_UNIT_ID)
 )
 lke_cam_0
 (
 	.clk			(clk),
 	.rst_n			(rst_n),
 	
-	.extract_key	(key_key_out_masked[0]),
-	.key_valid		(key_key_valid_out[0]),
-	.phv_valid		(key_phv_out_valid[0]),
-	.phv_in			(key_phv_out[0]),
+	.extract_key	(key_key_out_masked),
+	.key_valid		(key_key_valid_out),
+	.phv_valid		(key_phv_out_valid),
+	.phv_in			(key_phv_out),
 
-	.ready_out		(cam_ready_in[0]),
+	.ready_out		(cam_ready_in),
 
-	.phv_out		(cam_phv_out[0]),
-	.phv_out_valid	(cam_phv_out_valid[0]),
-	.match_addr_out	(cam_match_addr_out[0]),
-	.if_match		(cam_if_match[0]),
+	.phv_out		(cam_phv_out),
+	.phv_out_valid	(cam_phv_out_valid),
+	.match_addr_out	(cam_match_addr_out),
+	.if_match		(cam_if_match),
 
 	.ready_in		(lke_ram_ready_out),
 
 	// ctrl path
-	.c_s_axis_tdata		(ctrl_key_axis_tdata[C_NUM_SUBMATCH-1]),
-	.c_s_axis_tuser		(ctrl_key_axis_tuser[C_NUM_SUBMATCH-1]),
-	.c_s_axis_tkeep		(ctrl_key_axis_tkeep[C_NUM_SUBMATCH-1]),
-	.c_s_axis_tvalid	(ctrl_key_axis_tvalid[C_NUM_SUBMATCH-1]),
-	.c_s_axis_tlast		(ctrl_key_axis_tlast[C_NUM_SUBMATCH-1]),
+	.c_s_axis_tdata		(ctrl_key_axis_tdata),
+	.c_s_axis_tuser		(ctrl_key_axis_tuser),
+	.c_s_axis_tkeep		(ctrl_key_axis_tkeep),
+	.c_s_axis_tvalid	(ctrl_key_axis_tvalid),
+	.c_s_axis_tlast		(ctrl_key_axis_tlast),
 
-	.c_m_axis_tdata		(ctrl_cam_axis_tdata[0]),
-	.c_m_axis_tuser		(ctrl_cam_axis_tuser[0]),
-	.c_m_axis_tkeep		(ctrl_cam_axis_tkeep[0]),
-	.c_m_axis_tvalid	(ctrl_cam_axis_tvalid[0]),
-	.c_m_axis_tlast		(ctrl_cam_axis_tlast[0])
+	.c_m_axis_tdata		(ctrl_cam_axis_tdata),
+	.c_m_axis_tuser		(ctrl_cam_axis_tuser),
+	.c_m_axis_tkeep		(ctrl_cam_axis_tkeep),
+	.c_m_axis_tvalid	(ctrl_cam_axis_tvalid),
+	.c_m_axis_tlast		(ctrl_cam_axis_tlast)
 );
-
-generate
-	// key extractor part
-	for (idx=0; idx<C_NUM_SUBMATCH-1; idx=idx+1) begin:
-		sub_key_extractor
-		key_extract_top #(
-			.STAGE_ID(STAGE_ID)
-		)
-		extractor (
-			.clk			(clk),
-			.rst_n			(rst_n),
-
-			.phv_in			(phv_in),
-			.phv_valid_in	(phv_valid_in),
-			.ready_out		(),
-			.vlan_in		(vlan_in),
-			.vlan_in_valid	(vlan_in_valid),
-			.vlan_ready		(),
-
-			// 
-			.phv_out		(key_phv_out[idx+1]),
-			.phv_valid_out	(key_phv_out_valid[idx+1]),
-			.key_out_masked	(key_key_out_masked[idx+1]),
-			.key_valid_out	(key_key_valid_out[idx+1]),
-			.ready_in		(cam_ready_in[idx+1]),
-
-			// ctrl path
-			.c_s_axis_tdata		(ctrl_key_axis_tdata[idx]),
-			.c_s_axis_tuser		(ctrl_key_axis_tuser[idx]),
-			.c_s_axis_tkeep		(ctrl_key_axis_tkeep[idx]),
-			.c_s_axis_tvalid	(ctrl_key_axis_tvalid[idx]),
-			.c_s_axis_tlast		(ctrl_key_axis_tlast[idx]),
-
-			.c_m_axis_tdata		(ctrl_key_axis_tdata[idx+1]),
-			.c_m_axis_tuser		(ctrl_key_axis_tuser[idx+1]),
-			.c_m_axis_tkeep		(ctrl_key_axis_tkeep[idx+1]),
-			.c_m_axis_tvalid	(ctrl_key_axis_tvalid[idx+1]),
-			.c_m_axis_tlast		(ctrl_key_axis_tlast[idx+1])
-		);
-	end
-	// lke cam part
-	for (idx=1; idx<C_NUM_SUBMATCH; idx=idx+1) begin:
-		sub_lke_cam
-		lke_cam_part #(
-			.STAGE_ID(STAGE_ID)
-		)
-		lke_cam
-		(
-			.clk			(clk),
-			.rst_n			(rst_n),
-			
-			.extract_key	(key_key_out_masked[idx]),
-			.key_valid		(key_key_valid_out[idx]),
-			.phv_valid		(key_phv_out_valid[idx]),
-			.phv_in			(key_phv_out[idx]),
-		
-			.ready_out		(cam_ready_in[idx]),
-		
-			.phv_out		(cam_phv_out[idx]),
-			.phv_out_valid	(cam_phv_out_valid[idx]),
-			.match_addr_out	(cam_match_addr_out[idx]),
-			.if_match		(cam_if_match[idx]),
-		
-			.ready_in		(lke_ram_ready_out),
-		
-			// ctrl path
-			.c_s_axis_tdata		(ctrl_key_axis_tdata[idx-1]),
-			.c_s_axis_tuser		(ctrl_key_axis_tuser[idx-1]),
-			.c_s_axis_tkeep		(ctrl_key_axis_tkeep[idx-1]),
-			.c_s_axis_tvalid	(ctrl_key_axis_tvalid[idx-1]),
-			.c_s_axis_tlast		(ctrl_key_axis_tlast[idx-1]),
-		
-			.c_m_axis_tdata		(ctrl_cam_axis_tdata[idx]),
-			.c_m_axis_tuser		(ctrl_cam_axis_tuser[idx]),
-			.c_m_axis_tkeep		(ctrl_cam_axis_tkeep[idx]),
-			.c_m_axis_tvalid	(ctrl_cam_axis_tvalid[idx]),
-			.c_m_axis_tlast		(ctrl_cam_axis_tlast[idx])
-		);
-	end
-endgenerate
 
 localparam	WAIT_CAM_RESULT = 0;
 
@@ -263,45 +185,17 @@ always @(*) begin
 
 	case (state)
 		WAIT_CAM_RESULT: begin
-			if (cam_phv_out_valid[0]) begin
-				ram_phv_in_next = cam_phv_out[0];
+			if (cam_phv_out_valid) begin
+				ram_phv_in_next = cam_phv_out;
 				ram_phv_in_valid_next = 1;
 				//
-				if (cam_if_match[0] || 
-					cam_if_match[1] ||
-					cam_if_match[2] ||
-					cam_if_match[3] ||
-					cam_if_match[4] ||
-					cam_if_match[5] ||
-					cam_if_match[6] ||
-					cam_if_match[7]) begin
+				if (cam_if_match) begin
 
 					ram_if_match_in_next = 1;
 				end
 				// prepare addr input to indirection table
-				if (cam_if_match[7]) begin
-					ram_match_addr_in_next = 3'b111 << 8 | cam_match_addr_out[7];
-				end
-				else if (cam_if_match[6]) begin
-					ram_match_addr_in_next = 3'b110 << 8 | cam_match_addr_out[6];
-				end
-				else if (cam_if_match[5]) begin
-					ram_match_addr_in_next = 3'b101 << 8 | cam_match_addr_out[5];
-				end
-				else if (cam_if_match[4]) begin
-					ram_match_addr_in_next = 3'b100 << 8 | cam_match_addr_out[4];
-				end
-				else if (cam_if_match[3]) begin
-					ram_match_addr_in_next = 3'b011 << 8 | cam_match_addr_out[3];
-				end
-				else if (cam_if_match[2]) begin
-					ram_match_addr_in_next = 3'b010 << 8 | cam_match_addr_out[2];
-				end
-				else if (cam_if_match[1]) begin
-					ram_match_addr_in_next = 3'b001 << 8 | cam_match_addr_out[1];
-				end
-				else if (cam_if_match[0]) begin
-					ram_match_addr_in_next = 3'b000 << 8 | cam_match_addr_out[0];
+				if (cam_if_match) begin
+					ram_match_addr_in_next = cam_match_addr_out;
 				end
 				else begin
 					ram_match_addr_in_next = 11'h7ff;
@@ -383,7 +277,8 @@ end
 
 // put the lke ram part
 lke_ram_part #(
-	.STAGE_ID (STAGE_ID)
+	.STAGE_ID (STAGE_ID),
+	.SUB_UNIT_ID(SUB_UNIT_ID)
 )
 lke_ram (
 	.clk				(clk),
@@ -404,11 +299,11 @@ lke_ram (
 	.act_vlan_out_valid	(act_vlan_out_valid),
 	.act_vlan_ready		(act_vlan_ready),
 	// ctrl path
-	.c_s_axis_tdata		(ctrl_cam_axis_tdata[7]),
-	.c_s_axis_tuser		(ctrl_cam_axis_tuser[7]),
-	.c_s_axis_tkeep		(ctrl_cam_axis_tkeep[7]),
-	.c_s_axis_tlast		(ctrl_cam_axis_tlast[7]),
-	.c_s_axis_tvalid	(ctrl_cam_axis_tvalid[7]),
+	.c_s_axis_tdata		(ctrl_cam_axis_tdata),
+	.c_s_axis_tuser		(ctrl_cam_axis_tuser),
+	.c_s_axis_tkeep		(ctrl_cam_axis_tkeep),
+	.c_s_axis_tlast		(ctrl_cam_axis_tlast),
+	.c_s_axis_tvalid	(ctrl_cam_axis_tvalid),
 
 	.c_m_axis_tdata		(ctrl_ram_axis_tdata),
 	.c_m_axis_tuser		(ctrl_ram_axis_tuser),
@@ -425,6 +320,7 @@ wire [7:0]          mod_id; //module ID
 //NOTE: we don't need tcam entry mask
 //4'b2 for action table entry;
 wire [3:0]          resv; //recog between tcam and action
+wire [3:0]			sub_unit_id;
 wire [15:0]         control_flag; //dst udp port num
 
 reg  [7:0]          c_index_ind;
@@ -474,6 +370,7 @@ assign c_s_axis_tdata_swapped = {	ctrl_ram_axis_tdata[0+:8],
 
 assign mod_id = ctrl_ram_axis_tdata[112+:8];
 assign resv = ctrl_ram_axis_tdata[120+:4];
+assign sub_unit_id = ctrl_ram_axis_tdata[124+:4];
 assign control_flag = ctrl_ram_axis_tdata[64+:16];
 // 
 reg [9:0] c_state_next;
@@ -527,7 +424,7 @@ always @(*) begin
 			end
 		end
 		PARSE_C: begin // 2nd segment
-			if (mod_id[7:3] == STAGE_ID && mod_id[2:0] == INDIRECTION_ID && 
+			if (mod_id[7:3] == STAGE_ID && mod_id[2:0] == INDIRECTION_ID && sub_unit_id == SUB_UNIT_ID &&
 				control_flag == 16'hf2f1 && ctrl_ram_axis_tvalid && resv!=4'b0) begin
 				// should not emit segment
 				c_index_ind_next = ctrl_ram_axis_tdata[128+:8];
