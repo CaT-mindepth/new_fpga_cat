@@ -31,7 +31,7 @@ module alu_2 #(
 
 );
 
-reg  [3:0]           action_type, action_type_next;
+reg  [7:0]           action_type, action_type_next;
 
 //regs for RAM access
 reg                         store_en, store_en_next;
@@ -63,33 +63,33 @@ reg 						ready_out_next;
 // assign load_addr = store_addr[4:0] + base_addr;
 assign load_addr = operand_2_in[4:0] + base_addr;
 
-assign store_din_w = (action_type==4'b1000)?store_din:
-						((action_type==4'b0111)?(load_data+1):0);
+assign store_din_w = (action_type==8'b00001000)?store_din:
+						((action_type==8'b00000111)?(load_data+1):0);
 
-assign container_out_w = (action_type==4'b1011)?load_data:
-							(action_type==4'b0111)?(load_data+1):
+assign container_out_w = (action_type==8'b00001011)?load_data:
+							(action_type==8'b00000111)?(load_data+1):
 							container_out;
 
 /*
 7 operations to support:
 
-1,2. add/sub:   0001/0010
+1,2. add/sub:   00000001/00000010
               extract 2 operands from pkt header, add(sub) and write back.
 
-3,4. addi/subi: 1001/1010
+3,4. addi/subi: 00001001/00001010
               extract op1 from pkt header, op2 from action, add(sub) and write back.
 
-5: load:      0101
+5: load:      00000101
               load data from RAM, write to pkt header according to addr in action.
 
-6. store:     0110
+6. store:     00000110
               read data from pkt header, write to ram according to addr in action.
 
-7. loadd:     0111
+7. loadd:     00000111
               load data from RAM, increment by 1 write it to container, and write it
               back to the RAM. 
-8. set:		  1110
-			  set to an immediate value
+8. set:	      00001110
+	      set to an immediate value
 */
 
 localparam  IDLE_S = 3'd0,
@@ -119,43 +119,43 @@ always @(*) begin
 		IDLE_S: begin
 			
             if (action_valid) begin
-				action_type_next = action_in[24:21];
+				action_type_next = action_in[63:63-7];
                 overflow_next = 0;
 				alu_state_next = EMPTY1_S;
 				ready_out_next = 1'b0;
 
                 
-                case(action_in[24:21])
+                case(action_in[63:63-7])
                     //add/addi ops 
-                    4'b0001, 4'b1001: begin
+                    8'b00000001, 8'b00001001: begin
                         container_out_next = operand_1_in + operand_2_in;
                     end 
                     //sub/subi ops
-                    4'b0010, 4'b1010: begin
+                    8'b00000010, 8'b00001010: begin
                         container_out_next = operand_1_in - operand_2_in;
                     end
                     //store op (interact with RAM)
-                    4'b1000: begin
+                    8'b00001000: begin
                         container_out_next = operand_3_in;
                         //store_en_r = 1;
                         store_addr_next = operand_2_in[4:0];
                         store_din_next = operand_1_in;
                     end
                     // load op (interact with RAM)
-                    4'b1011: begin
+                    8'b00001011: begin
                         container_out_next = operand_3_in;
                     end
 					// loadd op
-                    4'b0111: begin
+                    8'b00000111: begin
                         // do nothing now
                         //checkme
                         container_out_next = operand_3_in;
                         store_addr_next = operand_2_in[4:0];
                     end
-					// set operation
-					4'b1110: begin
-						container_out_next = operand_2_in;
-					end
+		    // set operation
+		    8'b00001110: begin
+		        container_out_next = operand_2_in;
+		    end
                     //cannot go back to IDLE since this
                     //might be a legal action.
                     default: begin
@@ -164,14 +164,14 @@ always @(*) begin
 				endcase
 
 				//ok, if its `load` op, needs to check overflow.
-            	if(action_in[24:21] == 4'b1011 || action_in[24:21] == 4'b0111 || action_in[24:21] == 4'b1000) begin
+            	if(action_in[63:63-7] == 8'b00001011 || action_in[63:63-7] == 8'b00000111 || action_in[63:63-7] == 8'b00001000) begin
             	    if(operand_2_in[4:0] > addr_len) begin
             	        overflow_next = 1'b1;
             	    end
             	    else begin
             	        overflow_next = 1'b0;
             	        //its the right time to write for `store`
-            	        if(action_in[24:21] == 4'b1000 || action_in[24:21] == 4'b0111) begin
+            	        if(action_in[63:63-7] == 8'b00001000 || action_in[63:63-7] == 8'b00000111) begin
             	            store_addr_next = base_addr + operand_2_in[4:0];
             	            //store_din_r = operand_1_in;
             	            //store_en_next = 1'b1;
@@ -191,7 +191,7 @@ always @(*) begin
 				ready_out_next = 1;
 
 				// action_type
-				if ((action_type==4'b1000 || action_type==4'b0111) &&
+				if ((action_type==8'b00001000 || action_type==8'b00000111) &&
 						overflow==0) begin
 					store_en_next = 1'b1;
 				end
@@ -207,7 +207,7 @@ always @(*) begin
 				ready_out_next = 1;
 
 				// action_type
-				if ((action_type==4'b1000 || action_type==4'b0111) &&
+				if ((action_type==8'b00001000 || action_type==8'b00000111) &&
 						overflow==0) begin
 					store_en_next = 1'b1;
 				end
