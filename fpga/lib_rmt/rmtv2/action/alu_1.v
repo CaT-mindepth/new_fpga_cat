@@ -24,10 +24,10 @@ module alu_1 #(
 /*
 4 operations to support:
 
-1,2. add/sub:   0001/0010
+1,2. add/sub:   00000001/00000010
               extract 2 operands from pkt header, add(sub) and write back.
 
-3,4. addi/subi: 0011/0100
+3,4. addi/subi: 00000011/00000100
               extract op1 from pkt header, op2 from action, add(sub) and write back.
 */
 
@@ -51,16 +51,16 @@ always @(*) begin
 		IDLE_S: begin
 			if (action_valid) begin
 				state_next = OUTPUT_S;
-				case(action_in[24:21])
-            	    4'b0001, 4'b1001: begin
+				case(action_in[63:63-7])
+            	    4'b00000001, 4'b00001001: begin
             	        container_out_r = operand_1_in + operand_2_in;
             	    end
-            	    4'b0010, 4'b1010: begin
+            	    4'b00000010, 4'b00001010: begin
             	        container_out_r = operand_1_in - operand_2_in;
             	    end
-					4'b1110: begin
-						container_out_r = operand_2_in;
-					end
+		    4'b00001110: begin
+			container_out_r = operand_2_in;
+		    end
             	    //if its an empty (default) action
             	    default: begin
             	        container_out_r = operand_1_in;
