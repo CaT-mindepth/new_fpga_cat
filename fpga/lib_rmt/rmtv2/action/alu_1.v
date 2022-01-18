@@ -52,13 +52,13 @@ always @(*) begin
 			if (action_valid) begin
 				state_next = OUTPUT_S;
 				case(action_in[63:63-7])
-            	    4'b00000001, 4'b00001001: begin
+            	    8'b00000001, 8'b00001001: begin
             	        container_out_r = operand_1_in + operand_2_in;
             	    end
-            	    4'b00000010, 4'b00001010: begin
+            	    8'b00000010, 8'b00001010: begin
             	        container_out_r = operand_1_in - operand_2_in;
             	    end
-		    4'b00001110: begin
+		    8'b00001110: begin
 			container_out_r = operand_2_in;
 		    end
             	    //if its an empty (default) action
