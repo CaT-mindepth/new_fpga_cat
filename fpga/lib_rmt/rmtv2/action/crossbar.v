@@ -107,21 +107,21 @@ always @(posedge clk or negedge rst_n) begin
         		        alu_in_4B_3[(i+1)*width_4B-1 -: width_4B] <= cont_4B[i];
         		        casez(sub_action[i+1][63:63-7])
         		            //be noted that 2 ops need to be the same width
-        		            4'b00000001, 4'b00000010: begin
+        		            8'b00000001, 8'b00000010: begin
         		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[64+i+1][55:55-5]];
         		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[64+i+1][50:50-5]];
         		            end
-        		            4'b00001001, 4'b00001010: begin
+        		            8'b00001001, 8'b00001010: begin
         		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[64+i+1][55:55-5]];
         		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= sub_action[64+i+1][31:0];
         		            end
 				    // set operation, operand A set to 0, operand B set to imm
-				    4'b00001110: begin
+				    8'b00001110: begin
         		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= 32'b0;
         		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= sub_action[64+i+1][31:0];
 				    end
         		            //loadd put here
-        		            4'b00001011, 4'b00001000, 4'b00000111: begin
+        		            8'b00001011, 8'b00001000, 8'b00000111: begin
         		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[64+i+1][55:55-5]];
         		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[64+i+1][50:50-5]];
         		            end
