@@ -15,7 +15,7 @@ module crossbar #(
     input                       phv_in_valid,
 
     //input from action
-    input [ACT_LEN*193-1:0]      action_in,
+    input [ACT_LEN*65-1:0]      action_in,
     input                       action_in_valid,
     output reg                  ready_out,
 
@@ -27,7 +27,7 @@ module crossbar #(
     output reg [255:0]            phv_remain_data,
 
     //I have to delay action_in for ALUs for 1 cycle
-    output reg [ACT_LEN*193-1:0]   action_out,
+    output reg [ACT_LEN*65-1:0]   action_out,
     output reg                    action_valid_out,
     input                         ready_in
 );
@@ -44,7 +44,7 @@ wire [ACT_LEN-1:0]       sub_action [C_NUM_PHVS-1:0];
 
 genvar cont_idx;
 generate
-	for (cont_idx=63; cont_idx>0; cont_idx=cont_idx-1) 
+	for (cont_idx=63; cont_idx>=0; cont_idx=cont_idx-1) 
 	begin
 		assign cont_4B[cont_idx] = phv_in[PHV_LEN-1 - width_4B*(63-cont_idx) -: width_4B];
 	end
