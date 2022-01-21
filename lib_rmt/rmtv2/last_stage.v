@@ -87,7 +87,7 @@ assign match2action_action_all = match2action_action[0] ||
 									match2action_action[6] ||
 									match2action_action[7];
 
-assign match2action_action_all_valid = match2action_action_valid[0] ||
+assign match2action_action_valid_all = match2action_action_valid[0] ||
 										match2action_action_valid[1] ||
 										match2action_action_valid[2] ||
 										match2action_action_valid[3] ||
@@ -216,9 +216,9 @@ action_engine #(
 
     //signals from lookup to ALUs
     .phv_in(match2action_phv_r),
-    .phv_valid_in(match2action_action_all_valid_r),
+    .phv_valid_in(match2action_action_valid_all_r),
     .action_in(match2action_action_all_r),
-    .action_valid_in(match2action_action_all_valid_r),
+    .action_valid_in(match2action_action_valid_all_r),
     .ready_out(action2match_ready),
 
     //signals output from ALUs
@@ -272,7 +272,7 @@ always @(posedge axis_clk) begin
 	end
 	else begin
 		match2action_action_all_r <= match2action_action_all;
-		match2action_action_valid_all_r <= match2action_action_all_valid;
+		match2action_action_valid_all_r <= match2action_action_valid_all;
 		match2action_phv_r <= match2action_phv;
 
 		act_vlan_out_r <= act_vlan_out;

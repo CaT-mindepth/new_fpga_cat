@@ -25,3 +25,8 @@ project_pktgen/
 
 export_sim/
 *.pb
+
+*.axi
+*.bk
+
+onNetFPGA/TProj.src/input_files/

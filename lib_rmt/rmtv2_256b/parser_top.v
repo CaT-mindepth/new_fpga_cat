@@ -6,8 +6,9 @@ module parser_top #(
 	parameter C_S_AXIS_TUSER_WIDTH = 128,
 	parameter PKT_HDR_LEN = 4*8*64+256, // check with the doc
 	parameter PARSER_MOD_ID = 3'b0,
-	parameter C_NUM_SEGS = 4,
-	parameter C_VLANID_WIDTH = 12
+	parameter C_NUM_SEGS = 16,
+	parameter C_VLANID_WIDTH = 12,
+	parameter C_PARSER_RAM_WIDTH = 24*64
 )
 (
 	input									axis_clk,
@@ -75,6 +76,13 @@ module parser_top #(
 	output									ctrl_m_axis_tvalid,
 	output									ctrl_m_axis_tlast
 );
+
+/* dbg */
+wire [127:0] dbg_phv_tuser;
+
+assign dbg_phv_tuser = pkt_hdr_vec[127:0];
+
+
 
 
 wire [3:0] m_axis_tready_queue;
@@ -220,12 +228,12 @@ end
 
 wire [C_NUM_SEGS*C_S_AXIS_DATA_WIDTH-1:0]	tdata_segs_out;
 wire [C_S_AXIS_TUSER_WIDTH-1:0]				tuser_1st_out;
-wire [159:0]								bram_out;
+wire [C_PARSER_RAM_WIDTH-1:0]				bram_out;
 wire										segs_valid_out;
 
 reg [C_NUM_SEGS*C_S_AXIS_DATA_WIDTH-1:0]	tdata_segs_out_r;
 reg [C_S_AXIS_TUSER_WIDTH-1:0]				tuser_1st_out_r;
-reg [159:0]									bram_out_r;
+reg [C_PARSER_RAM_WIDTH-1:0]				bram_out_r;
 reg 										segs_valid_out_r;
 
 parser_wait_segs #(
@@ -293,7 +301,7 @@ always @(posedge axis_clk) begin
 	end
 	else begin
 		tdata_segs_out_r <= tdata_segs_out;
-		tuser_1st_out_r <= tuser_1st_out_r;
+		tuser_1st_out_r <= tuser_1st_out;
 		segs_valid_out_r <= segs_valid_out;
 		bram_out_r <= bram_out;
 	end

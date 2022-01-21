@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 module lke_ram_part #(
-    parameter C_S_AXIS_DATA_WIDTH = 512,
+    parameter C_S_AXIS_DATA_WIDTH = 256,
     parameter C_S_AXIS_TUSER_WIDTH = 128,
     parameter STAGE_ID = 0,
     parameter PHV_LEN = 4*8*64+256,

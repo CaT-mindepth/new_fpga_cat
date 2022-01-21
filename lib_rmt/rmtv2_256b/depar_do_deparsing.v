@@ -200,6 +200,7 @@ integer i;
 
 always @(*) begin
 
+	pkt_fifo_rd_en = 0;
 	phv_fifo_rd_en = 0;
 	// output
 	depar_out_tdata_next = depar_out_tdata;
@@ -224,7 +225,7 @@ always @(*) begin
 				state_next = WAIT_1CYCLE;
 
 				pkts_tdata_stored_next[0*C_AXIS_DATA_WIDTH +: C_AXIS_DATA_WIDTH] = pkt_fifo_tdata;
-				pkts_tuser_stored_next[0*C_AXIS_TUSER_WIDTH +: C_AXIS_TUSER_WIDTH] = pkt_fifo_tuser;
+				pkts_tuser_stored_next[0*C_AXIS_TUSER_WIDTH +: C_AXIS_TUSER_WIDTH] = phv_fifo_out[127:0];
 				pkts_tkeep_stored_next[0*C_AXIS_DATA_WIDTH/8 +: C_AXIS_DATA_WIDTH/8] = pkt_fifo_tkeep;
 				pkts_tlast_stored_next[0] = pkt_fifo_tlast;
 
@@ -273,7 +274,23 @@ always @(*) begin
 
 			state_next = FLUSH_PKT_0;
 		end
-		`FLUSH_OUT_PKT(FLUSH_PKT_0, FLUSH_PKT_1, 0)
+		FLUSH_PKT_0: begin
+			depar_out_tdata_next = pkts_tdata_stored[0+:C_AXIS_DATA_WIDTH];
+			depar_out_tuser_next = pkts_tuser_stored[0+:C_AXIS_TUSER_WIDTH];
+			depar_out_tkeep_next = pkts_tkeep_stored[0+:(C_AXIS_DATA_WIDTH/8)];
+			depar_out_tlast_next = pkts_tlast_stored[0];
+			if (depar_out_tready) begin
+				phv_fifo_rd_en = 1;
+				depar_out_tvalid_next = 1;
+				if (pkts_tlast_stored[0]) begin
+					state_next = IDLE;
+				end
+				else begin
+					state_next = FLUSH_PKT_1;
+				end
+			end
+		end
+
 		`FLUSH_OUT_PKT(FLUSH_PKT_1, FLUSH_PKT_2, 1)
 		`FLUSH_OUT_PKT(FLUSH_PKT_2, FLUSH_PKT_3, 2)
 		`FLUSH_OUT_PKT(FLUSH_PKT_3, FLUSH_PKT_4, 3)

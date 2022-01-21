@@ -79,7 +79,7 @@ module rmt_wrapper #(
 );
 
 /*=================================================*/
-localparam PKT_VEC_WIDTH = (6+4+2)*8*8+256;
+localparam PKT_VEC_WIDTH = 4*8*64+256;
 // 
 wire [PKT_VEC_WIDTH-1:0]			stg0_phv_in;
 wire								stg0_phv_in_valid;
@@ -434,12 +434,12 @@ generate
 		sub_phv_fifo_1
 		// multiple PHV fifos
 		fallthrough_small_fifo #(
-			.WIDTH(512),
+			.WIDTH(1152),
 			.MAX_DEPTH_BITS(6)
 		)
 		phv_fifo_1
 		(
-			.din			(last_stg_phv_out[i][511:0]),
+			.din			(last_stg_phv_out[i][1151:0]),
 			.wr_en			(last_stg_phv_out_valid[i]),
 			// .din			(stg1_phv_out),
 			// .wr_en			(stg1_phv_out_valid_w),
@@ -462,12 +462,12 @@ generate
 		sub_phv_fifo_2
 		// multiple PHV fifos
 		fallthrough_small_fifo #(
-			.WIDTH(512),
+			.WIDTH(1152),
 			.MAX_DEPTH_BITS(6)
 		)
 		phv_fifo_2
 		(
-			.din			(last_stg_phv_out[i][1023:512]),
+			.din			(last_stg_phv_out[i][2303:1152]),
 			.wr_en			(last_stg_phv_out_valid[i]),
 			// .din			(stg1_phv_out),
 			// .wr_en			(stg1_phv_out_valid_w),
