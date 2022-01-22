@@ -2,7 +2,7 @@
 
 
 module sub_deparser #(
-	parameter C_PKT_VEC_WIDTH = (6+4+2)*64*8+256,
+	parameter C_PKT_VEC_WIDTH = 32*64+256,
 	parameter C_PARSE_ACT_LEN = 9						// only 6 bits are used here
 )
 (
@@ -18,9 +18,10 @@ module sub_deparser #(
 	output reg [1:0]							val_out_type
 );
 
+// FIXME: 2B and 6B are not used here
 localparam PHV_2B_START_POS = 0+256;
-localparam PHV_4B_START_POS = 16*64+256;
-localparam PHV_6B_START_POS = 16*64+32*64+256;
+localparam PHV_4B_START_POS = 0+256;
+localparam PHV_6B_START_POS = 0+256;
 
 
 reg			val_out_valid_nxt;

@@ -37,13 +37,13 @@ module parser_do_parsing #(
 	parameter C_WIDTH_PARSE_ACTION = 24
 )
 (
-	input											axis_clk,
-	input											aresetn,
+	input														axis_clk,
+	input														aresetn,
 
-	input [C_NUM_SEGS*C_AXIS_DATA_WIDTH-1:0]		tdata_segs,
-	input [C_AXIS_TUSER_WIDTH-1:0]					tuser_1st,
-	input											segs_valid,
-	input [159:0]									bram_out,
+	input [C_NUM_SEGS*C_AXIS_DATA_WIDTH-1:0]					tdata_segs,
+	input [C_AXIS_TUSER_WIDTH-1:0]								tuser_1st,
+	input														segs_valid,
+	input [C_NUM_PARSE_ACTION*C_WIDTH_PARSE_ACTION-1:0]			bram_out,
 
 
 	input											stg_ready_in,
@@ -87,7 +87,7 @@ generate
 endgenerate
 
 reg [C_NUM_PARSE_ACTION-1:0] sub_parse_act_valid;
-reg [C_WIDTH_PARSE_ACTION-1:0] sub_parse_act [0:C_NUM_PARSE_ACTION-1];
+// reg [C_WIDTH_PARSE_ACTION-1:0] sub_parse_act [0:C_NUM_PARSE_ACTION-1];
 wire [47:0] sub_parse_val_out [0:C_NUM_PARSE_ACTION-1];
 wire [C_NUM_PARSE_ACTION-1:0] sub_parse_val_out_valid;
 wire [1:0] sub_parse_val_out_type [0:C_NUM_PARSE_ACTION-1];
