@@ -3,7 +3,7 @@
 
 
 module sub_parser #(
-	parameter PKTS_HDR_LEN = 32*64+256,
+	parameter PKTS_HDR_LEN = 16*256,
 	parameter PARSE_ACT_LEN = 24,
 	parameter VAL_OUT_LEN = 48
 )

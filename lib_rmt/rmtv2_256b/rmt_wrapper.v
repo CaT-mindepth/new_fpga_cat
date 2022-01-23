@@ -421,8 +421,8 @@ wire							phv_fifo_rd_en [C_NUM_QUEUES-1:0];
 wire							phv_fifo_nearly_full [C_NUM_QUEUES-1:0];
 wire							phv_fifo_empty [C_NUM_QUEUES-1:0];
 
-wire [511:0] high_phv_out [C_NUM_QUEUES-1:0];
-wire [511:0] low_phv_out [C_NUM_QUEUES-1:0];
+wire [1151:0] high_phv_out [C_NUM_QUEUES-1:0];
+wire [1151:0] low_phv_out [C_NUM_QUEUES-1:0];
 
 assign phv_fifo_out[0] = {high_phv_out[0], low_phv_out[0]};
 assign phv_fifo_out[1] = {high_phv_out[1], low_phv_out[1]};
@@ -558,6 +558,7 @@ phv_parser
 );
 
 
+/*
 stage #(
 	.C_S_AXIS_DATA_WIDTH(256),
 	.STAGE_ID(0)
@@ -719,11 +720,52 @@ stage3
 	.c_m_axis_tlast(ctrl_s_axis_tlast_6),
 	.c_m_axis_tvalid(ctrl_s_axis_tvalid_6)
 );
+stage #(
+	.C_S_AXIS_DATA_WIDTH(256),
+	.STAGE_ID(0)
+)
+stage0
+(
+	.axis_clk				(clk),
+    .aresetn				(aresetn),
+
+	// input
+    .phv_in					(stg0_phv_in_d1),
+    .phv_in_valid			(stg0_phv_in_valid_d1),
+	.vlan_in				(stg0_vlan_in_r),
+	.vlan_valid_in			(stg0_vlan_valid_in_r),
+	.vlan_ready_out			(stg0_vlan_ready),
+	// output
+	.vlan_out				(stg0_vlan_out),
+	.vlan_valid_out			(stg0_vlan_valid_out),
+	.vlan_out_ready			(stg1_vlan_ready),
+	// output
+    .phv_out				(stg0_phv_out),
+    .phv_out_valid			(stg0_phv_out_valid),
+	// back-pressure signals
+	.stage_ready_out		(stg0_ready),
+	.stage_ready_in			(stg1_ready),
+
+	// control path
+    .c_s_axis_tdata(ctrl_s_axis_tdata_2_r),
+	.c_s_axis_tuser(ctrl_s_axis_tuser_2_r),
+	.c_s_axis_tkeep(ctrl_s_axis_tkeep_2_r),
+	.c_s_axis_tlast(ctrl_s_axis_tlast_2_r),
+	.c_s_axis_tvalid(ctrl_s_axis_tvalid_2_r),
+
+    .c_m_axis_tdata(ctrl_s_axis_tdata_3),
+	.c_m_axis_tuser(ctrl_s_axis_tuser_3),
+	.c_m_axis_tkeep(ctrl_s_axis_tkeep_3),
+	.c_m_axis_tlast(ctrl_s_axis_tlast_3),
+	.c_m_axis_tvalid(ctrl_s_axis_tvalid_3)
+);
+
+*/
 
 // [NOTICE] change to last stage
 last_stage #(
 	.C_S_AXIS_DATA_WIDTH(256),
-	.STAGE_ID(4)
+	.STAGE_ID(0)
 )
 stage4
 (
@@ -731,13 +773,19 @@ stage4
     .aresetn				(aresetn),
 
 	// input
-    .phv_in					(stg3_phv_out_d1),
-    .phv_in_valid			(stg3_phv_out_valid_d1),
-	.vlan_in				(stg3_vlan_out_r),
-	.vlan_valid_in			(stg3_vlan_valid_out_r),
-	.vlan_ready_out			(last_stg_vlan_ready),
+    // .phv_in					(stg3_phv_out_d1),
+    // .phv_in_valid			(stg3_phv_out_valid_d1),
+	// .vlan_in				(stg3_vlan_out_r),
+	// .vlan_valid_in			(stg3_vlan_valid_out_r),
+	// .vlan_ready_out			(last_stg_vlan_ready),
+    .phv_in					(stg0_phv_in_d1),
+    .phv_in_valid			(stg0_phv_in_valid_d1),
+	.vlan_in				(stg0_vlan_in_r),
+	.vlan_valid_in			(stg0_vlan_valid_in_r),
+	.vlan_ready_out			(stg0_vlan_ready),
 	// back-pressure signals
-	.stage_ready_out		(last_stg_ready),
+	// .stage_ready_out		(last_stg_ready),
+	.stage_ready_out		(stg0_ready),
 	// output
     .phv_out_0				(last_stg_phv_out[0]),
     .phv_out_valid_0		(last_stg_phv_out_valid[0]),
@@ -756,11 +804,11 @@ stage4
 	.phv_fifo_ready_3		(~phv_fifo_nearly_full[3]),
 
 	// control path
-    .c_s_axis_tdata(ctrl_s_axis_tdata_6_r),
-	.c_s_axis_tuser(ctrl_s_axis_tuser_6_r),
-	.c_s_axis_tkeep(ctrl_s_axis_tkeep_6_r),
-	.c_s_axis_tlast(ctrl_s_axis_tlast_6_r),
-	.c_s_axis_tvalid(ctrl_s_axis_tvalid_6_r),
+    .c_s_axis_tdata(ctrl_s_axis_tdata_2_r),
+	.c_s_axis_tuser(ctrl_s_axis_tuser_2_r),
+	.c_s_axis_tkeep(ctrl_s_axis_tkeep_2_r),
+	.c_s_axis_tlast(ctrl_s_axis_tlast_2_r),
+	.c_s_axis_tvalid(ctrl_s_axis_tvalid_2_r),
 
     .c_m_axis_tdata(ctrl_s_axis_tdata_7),
 	.c_m_axis_tuser(ctrl_s_axis_tuser_7),

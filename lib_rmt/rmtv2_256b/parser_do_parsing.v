@@ -91,7 +91,7 @@ reg [C_NUM_PARSE_ACTION-1:0] sub_parse_act_valid;
 wire [47:0] sub_parse_val_out [0:C_NUM_PARSE_ACTION-1];
 wire [C_NUM_PARSE_ACTION-1:0] sub_parse_val_out_valid;
 wire [1:0] sub_parse_val_out_type [0:C_NUM_PARSE_ACTION-1];
-wire [2:0] sub_parse_val_out_seq [0:C_NUM_PARSE_ACTION-1];
+wire [5:0] sub_parse_val_out_seq [0:C_NUM_PARSE_ACTION-1];
 
 reg [31:0] val_4B [0:63];
 reg [31:0] val_4B_nxt [0:63];

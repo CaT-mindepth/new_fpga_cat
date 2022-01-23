@@ -312,7 +312,7 @@ generate
 						c_wr_en_mask_next = 1;
 						key_mask_entry_reg_next[KEY_LEN-1 -: 256] = c_s_axis_tdata_swapped;
 
-						c_state_next = FLUSH_PKT_C;
+						c_state_next = WRITE_MASK_C_1;
 					end
 				end
 				WRITE_MASK_C_1: begin

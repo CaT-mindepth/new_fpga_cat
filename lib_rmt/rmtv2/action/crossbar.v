@@ -55,7 +55,7 @@ genvar act_idx;
 generate 
 	for (act_idx=0; act_idx<C_NUM_PHVS; act_idx=act_idx+1) 
 	begin
-		assign sub_action[act_idx] = action_in[ACT_LEN*C_NUM_PHVS-1 - act_idx*ACT_LEN -: ACT_LEN];
+		assign sub_action[act_idx] = action_in[act_idx*ACT_LEN +: ACT_LEN];
 	end
 endgenerate
 //assign inputs for ALUs 
@@ -70,6 +70,14 @@ localparam IDLE = 0,
 			HALT = 2;
 
 reg [2:0] state;
+
+// dbg
+wire [63:0] dbg_action;
+wire [47:0] dbg_cont1, dbg_cont2;
+
+assign dbg_action = sub_action[1];
+assign dbg_cont1 = alu_in_4B_1[32 +: 32];
+assign dbg_cont2 = alu_in_4B_2[32 +: 32];
 
 always @(posedge clk or negedge rst_n) begin
     if(~rst_n) begin
@@ -108,22 +116,22 @@ always @(posedge clk or negedge rst_n) begin
         		        casez(sub_action[i+1][63:63-7])
         		            //be noted that 2 ops need to be the same width
         		            8'b00000001, 8'b00000010: begin
-        		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[64+i+1][55:55-5]];
-        		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[64+i+1][50:50-5]];
+        		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
+        		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][50:50-5]];
         		            end
         		            8'b00001001, 8'b00001010: begin
-        		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[64+i+1][55:55-5]];
-        		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= sub_action[64+i+1][31:0];
+        		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
+        		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= sub_action[i+1][31:0];
         		            end
 				    // set operation, operand A set to 0, operand B set to imm
 				    8'b00001110: begin
         		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= 32'b0;
-        		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= sub_action[64+i+1][31:0];
+        		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= sub_action[i+1][31:0];
 				    end
         		            //loadd put here
         		            8'b00001011, 8'b00001000, 8'b00000111: begin
-        		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[64+i+1][55:55-5]];
-        		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[64+i+1][50:50-5]];
+        		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
+        		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][50:50-5]];
         		            end
         		            //if there is no action to take, output the original value
         		            default: begin

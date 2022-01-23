@@ -129,6 +129,7 @@ extractor (
 );
 
 lke_cam_part #(
+	.C_S_AXIS_DATA_WIDTH(C_S_AXIS_DATA_WIDTH),
 	.STAGE_ID(STAGE_ID),
 	.SUB_UNIT_ID(SUB_UNIT_ID)
 )
@@ -183,6 +184,7 @@ always @(*) begin
 	ram_phv_in_valid_next = 0;
 	ram_if_match_in_next = 0;
 
+	ram_match_addr_in_next = ram_match_addr_in;
 	case (state)
 		WAIT_CAM_RESULT: begin
 			if (cam_phv_out_valid) begin
@@ -230,7 +232,7 @@ always @(*) begin
 
 				ind_to_ram_phv_next = ram_phv_in;
 				ind_to_ram_phv_valid_next = ram_phv_in_valid;
-				ind_to_ram_if_match_next = ram_match_addr_in;
+				ind_to_ram_if_match_next = ram_if_match_in;
 			end
 		end
 		WAIT_IND_OUTPUT_1C: begin
@@ -531,7 +533,7 @@ blk_mem_gen_4
 indirection_ram_2048d_8w
 (
 	// write
-	.addra				(c_index_ind),
+	.addra				({3'b0, c_index_ind}),
 	.clka				(clk),
 	.dina				(c_wr_ind_data),
 	.ena				(1'b1),

@@ -106,7 +106,7 @@ always @(posedge clk) begin
 
 					for (i=0; i<64; i=i+1) begin
 // 						cont_6B[63-i] <= phv_in[PHV_LEN-1 - i*WIDTH_6B -: WIDTH_6B];
-						cont_4B[64-i] <= phv_in[PHV_LEN-1 - i*WIDTH_4B -: WIDTH_4B];
+						cont_4B[63-i] <= phv_in[PHV_LEN-1 - i*WIDTH_4B -: WIDTH_4B];
 //						cont_2B[64-i] <= phv_in[PHV_LEN-1 - 64*WIDTH_6B - 64*WIDTH_4B - i*WIDTH_2B -: WIDTH_4B];
 					end
 

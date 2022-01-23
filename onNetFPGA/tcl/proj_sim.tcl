@@ -35,7 +35,7 @@ set device  xc7vx690t-3-ffg1761
 set proj_dir ./project_sim
 set public_repo_dir $::env(SUME_FOLDER)/lib/hw/
 set xilinx_repo_dir $::env(XILINX_PATH)/data/ip/xilinx/
-set axi_files_dir /home/twang/workspace/hc20-verilog/onNetFPGA/TProj.src/input_files
+set axi_files_dir /home/twang/workspace/xy-simulation/onNetFPGA/TProj.src/input_files
 set bit_settings ./TProj.src/generic_bit.xdc 
 set project_constraints ./TProj.src/nf_sume_general.xdc
 set nf_10g_constraints ./TProj.src/nf_sume_10g.xdc
@@ -119,7 +119,7 @@ generate_target all [get_ips blk_mem_gen_3]
 
 create_ip -name blk_mem_gen -vendor xilinx.com -library ip -version 8.4 -module_name blk_mem_gen_4
 # set_property -dict [list CONFIG.Memory_Type {Simple_Dual_Port_RAM} CONFIG.Load_Init_File {true} CONFIG.Coe_File {/../../../../../../TProj.src/lib_rmt_256b/rmtv2/memory_init_files/key_mask.coe} CONFIG.Write_Depth_A {32} CONFIG.Write_Width_A {257} CONFIG.Read_Width_A {257} CONFIG.Operating_Mode_A {NO_CHANGE} CONFIG.Write_Width_B {257} CONFIG.Read_Width_B {257} CONFIG.Enable_B {Use_ENB_Pin} CONFIG.Register_PortA_Output_of_Memory_Primitives {false} CONFIG.Register_PortB_Output_of_Memory_Primitives {true} CONFIG.Port_B_Clock {100} CONFIG.Port_B_Enable_Rate {100}] [get_ips blk_mem_gen_4]
-set_property -dict [list CONFIG.Memory_Type {Simple_Dual_Port_RAM} CONFIG.Load_Init_File {false} CONFIG.Write_Depth_A {2048} CONFIG.Write_Width_A {8} CONFIG.Read_Width_A {8} CONFIG.Operating_Mode_A {NO_CHANGE} CONFIG.Write_Width_B {8} CONFIG.Read_Width_B {8} CONFIG.Enable_B {Use_ENB_Pin} CONFIG.Register_PortA_Output_of_Memory_Primitives {false} CONFIG.Register_PortB_Output_of_Memory_Primitives {true} CONFIG.Port_B_Clock {100} CONFIG.Port_B_Enable_Rate {100}] [get_ips blk_mem_gen_4]
+set_property -dict [list CONFIG.Memory_Type {Simple_Dual_Port_RAM} CONFIG.Load_Init_File {true} CONFIG.Coe_File {/../../../../../../TProj.src/lib_rmt_256b/rmtv2/memory_init_files/ind.coe} CONFIG.Write_Depth_A {2048} CONFIG.Write_Width_A {8} CONFIG.Read_Width_A {8} CONFIG.Operating_Mode_A {NO_CHANGE} CONFIG.Write_Width_B {8} CONFIG.Read_Width_B {8} CONFIG.Enable_B {Use_ENB_Pin} CONFIG.Register_PortA_Output_of_Memory_Primitives {false} CONFIG.Register_PortB_Output_of_Memory_Primitives {true} CONFIG.Port_B_Clock {100} CONFIG.Port_B_Enable_Rate {100}] [get_ips blk_mem_gen_4]
 set_property generate_synth_checkpoint false [get_files blk_mem_gen_4.xci]
 reset_target all [get_ips blk_mem_gen_4]
 generate_target all [get_ips blk_mem_gen_4]
