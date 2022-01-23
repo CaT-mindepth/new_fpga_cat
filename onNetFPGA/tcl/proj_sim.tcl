@@ -35,7 +35,7 @@ set device  xc7vx690t-3-ffg1761
 set proj_dir ./project_sim
 set public_repo_dir $::env(SUME_FOLDER)/lib/hw/
 set xilinx_repo_dir $::env(XILINX_PATH)/data/ip/xilinx/
-set axi_files_dir /home/twang/workspace/xy-simulation/onNetFPGA/TProj.src/input_files
+set axi_files_dir /home/xiangyug/play_with_git/corundum-forked-after-sigcomm/onNetFPGA/TProj.src/input_files
 set bit_settings ./TProj.src/generic_bit.xdc 
 set project_constraints ./TProj.src/nf_sume_general.xdc
 set nf_10g_constraints ./TProj.src/nf_sume_10g.xdc
