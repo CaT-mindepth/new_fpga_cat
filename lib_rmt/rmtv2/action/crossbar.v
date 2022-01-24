@@ -71,14 +71,6 @@ localparam IDLE = 0,
 
 reg [2:0] state;
 
-// dbg
-wire [63:0] dbg_action;
-wire [47:0] dbg_cont1, dbg_cont2;
-
-assign dbg_action = sub_action[1];
-assign dbg_cont1 = alu_in_4B_1[32 +: 32];
-assign dbg_cont2 = alu_in_4B_2[32 +: 32];
-
 always @(posedge clk or negedge rst_n) begin
     if(~rst_n) begin
         // phv_reg <= 1124'b0;

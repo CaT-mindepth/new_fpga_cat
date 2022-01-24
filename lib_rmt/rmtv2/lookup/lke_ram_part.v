@@ -61,7 +61,7 @@ reg [PHV_LEN-1:0] phv_reg;
 reg if_match_d1;
 reg [2:0] lookup_state;
 
-assign action = (if_match_d1==1)?action_wire:4160'h3f;
+assign action = (if_match_d1==1)?action_wire:4160'h0;
 
 //here, the output should be controlled.
 localparam IDLE_S = 3'd0,

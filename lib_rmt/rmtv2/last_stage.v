@@ -105,7 +105,6 @@ reg [C_VLANID_WIDTH-1:0]	act_vlan_out_r;
 reg							act_vlan_out_valid_r;
 wire						act_vlan_ready;
 
-
 //
 sub_match_unit #(
     .C_S_AXIS_DATA_WIDTH(C_S_AXIS_DATA_WIDTH),

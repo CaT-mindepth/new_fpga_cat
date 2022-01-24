@@ -5,8 +5,8 @@ import random
 import argparse
 
 #TODO: get the path of NetFPGA-SUME-live
-scripts_path = "/home/xiangyug/NetFPGA-SUME-live/tools/scripts"
-nftest_path = "/home/xiangyug/NetFPGA-SUME-live/tools/scripts/NFTest/"
+scripts_path = "/home/twang/workspace/NetFPGA-SUME-live/tools/scripts"
+nftest_path = "/home/twang/workspace/NetFPGA-SUME-live/tools/scripts/NFTest/"
 sys.path.append(scripts_path)
 sys.path.append(nftest_path)
 

@@ -30,3 +30,5 @@ export_sim/
 *.bk
 
 onNetFPGA/TProj.src/input_files/
+
+seed
