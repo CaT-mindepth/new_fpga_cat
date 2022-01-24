@@ -45,11 +45,11 @@ def main():
         pkts = []
         # pkt = func.gen_data_pkt("000d000000020000000400000000"+1440*"00", 1)
         # pkts.append(pkt)
-        pkt = func.gen_data_pkt("0000000500000003000000000000"+4*"00", 1)
+        pkt = func.gen_data_pkt("00000005000000030000000300000003000000030000000300000003", 1)
         pkts.append(pkt)
-        pkt = func.gen_data_pkt("00000005000000020000"+8*"00", 1)
+        pkt = func.gen_data_pkt("00000005000000020000000200000002000000020000000200000002", 1)
         pkts.append(pkt)
-        pkt = func.gen_data_pkt("00000005000000050000"+8*"00", 1)
+        pkt = func.gen_data_pkt("00000003000000030000000300000003000000030000000300000003", 1)
         pkts.append(pkt)
 
         # test for src routing
