@@ -117,7 +117,7 @@ always @(posedge clk or negedge rst_n) begin
         		            //be noted that 2 ops need to be the same width
         		            8'b00000001, 8'b00000010: begin
         		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
-        		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][50:50-5]];
+        		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][49:49-5]];
         		            end
         		            8'b00001001, 8'b00001010: begin
         		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
@@ -131,7 +131,7 @@ always @(posedge clk or negedge rst_n) begin
         		            //loadd put here
         		            8'b00001011, 8'b00001000, 8'b00000111: begin
         		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
-        		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][50:50-5]];
+        		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][49:49-5]];
         		            end
         		            //if there is no action to take, output the original value
         		            default: begin
