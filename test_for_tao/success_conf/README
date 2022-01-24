@@ -3,3 +3,7 @@ success2:
 Table1: pkt_0 = 5 -> pkt_1 = 1
 Table2: pkt_2 = 5 -> pkt_3 = 3
 success3: pkt_0 = 5 -> reg[pkt_1] = pkt_2
+success4: pkt_0 = 5 -> pkt_1 = pkt_2 + pkt_3
+success5: pkt_0 = 5 -> pkt_1 = pkt_2 + 5
+success6: pkt_0 = 5 -> pkt_1 = pkt_2 - 5
+success7: pkt_0 = 5 -> pkt_1 = pkt_2 - pkt_3
