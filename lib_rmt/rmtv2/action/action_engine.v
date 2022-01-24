@@ -269,21 +269,30 @@ alu_2 #(
 
 generate
     for(gen_i = 62; gen_i >= 0; gen_i = gen_i - 1) begin
-		alu_1 #(
-		    .STAGE_ID(STAGE_ID),
-		    .ACTION_LEN(),
-		    .DATA_WIDTH(width_4B)
-		)alu_1_4B(
-		    .clk(clk),
-		    .rst_n(rst_n),
-		    .action_in(alu_in_action[(gen_i+1+1)*ACT_LEN-1 -: ACT_LEN]),
-		    .action_valid(alu_in_action_valid),
-		    .operand_1_in(alu_in_4B_1[(gen_i+1) * width_4B -1 -: width_4B]),
-		    .operand_2_in(alu_in_4B_2[(gen_i+1) * width_4B -1 -: width_4B]),
-		    // .container_out(phv_out[width_2B*8+356+width_4B*(gen_i+1) -1 -: width_4B]),
-		    .container_out(output_4B[gen_i]),
-		    .container_out_valid()
-		);
+                alu_2 #(
+                    .STAGE_ID(STAGE_ID),
+                    .ACTION_LEN(),
+                    .DATA_WIDTH(width_4B),  //data width of the ALU
+                    .C_S_AXIS_DATA_WIDTH(C_S_AXIS_DATA_WIDTH),
+                    .C_S_AXIS_TUSER_WIDTH(C_S_AXIS_TUSER_WIDTH)
+                )alu_2_0(
+                    .clk(clk),
+                    .rst_n(rst_n),
+                    //input from sub_action
+                    .action_in(alu_in_action[(gen_i+1+1)*ACT_LEN-1 -: ACT_LEN]),
+                    .action_valid(alu_in_action_valid),
+                    .operand_1_in(alu_in_4B_1[(gen_i+1) * width_4B -1 -: width_4B]),
+                    .operand_2_in(alu_in_4B_2[(gen_i+1) * width_4B -1 -: width_4B]),
+                    .operand_3_in(alu_in_4B_3[(gen_i+1) * width_4B -1 -: width_4B]),
+                    .ready_out(),
+                    //
+                    .page_tbl_out			(page_tbl_out),
+                    .page_tbl_out_valid		(page_tbl_out_valid),
+                    //output to form PHV
+                    .container_out_w(output_4B[gen_i]),
+                    .container_out_valid(),
+                    .ready_in(ready_in)
+                );
     end
 endgenerate
 
