@@ -19,6 +19,7 @@ module alu_2 #(
     input [DATA_WIDTH-1:0]            operand_1_in,
     input [DATA_WIDTH-1:0]            operand_2_in,
     input [DATA_WIDTH-1:0]            operand_3_in,
+    input [DATA_WIDTH-1:0]            operand_4_in,
 	output reg 						  ready_out,
 
 	input [15:0]						page_tbl_out,
@@ -134,6 +135,9 @@ always @(*) begin
                     8'b00000010, 8'b00001010: begin
                         container_out_next = operand_1_in - operand_2_in;
                     end
+		    // TODO: add if-else ALU
+		    8'b00001100: begin
+		    end
                     //store op (interact with RAM)
                     8'b00001000: begin
                         container_out_next = operand_3_in;
@@ -177,7 +181,7 @@ always @(*) begin
 		    8'b00011011: begin
 			container_out_next = operand_1_in >= operand_2_in;
 		    end
-		    8'b00001100, 8'b00011101: begin
+		    8'b00011100, 8'b00011101: begin
 			container_out_next = operand_1_in < operand_2_in;
 		    end
 		    8'b00010100: begin
