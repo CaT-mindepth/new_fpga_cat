@@ -7,3 +7,5 @@ success4: pkt_0 = 5 -> pkt_1 = pkt_2 + pkt_3
 success5: pkt_0 = 5 -> pkt_1 = pkt_2 + 5
 success6: pkt_0 = 5 -> pkt_1 = pkt_2 - 5
 success7: pkt_0 = 5 -> pkt_1 = pkt_2 - pkt_3
+success8: pkt_0 = 5 -> pkt_1 = pkt_2 == pkt_3
+success9: pkt_0 = 5 -> pkt_1 = pkt_2 >= pkt_3
