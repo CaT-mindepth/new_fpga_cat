@@ -121,10 +121,62 @@ always @(posedge clk or negedge rst_n) begin
         		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= sub_action[i+1][31:0];
 				    end
         		            //loadd put here
-        		            8'b00001011, 8'b00001000, 8'b00000111: begin
+        		            8'b00001011, 8'b00001000, 8'b00010111: begin
         		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
         		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][49:49-5]];
         		            end
+				    // const - pkt0
+				    8'b00000011: begin
+					alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
+					alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= sub_action[i+1][31:0];
+				    end
+				    // pkt0 != pkt1
+				    8'b00000100: begin
+					alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
+					alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][49:49-5]];
+   				    end
+				    // pkt_0 != const
+				    8'b00000101: begin
+					alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
+					alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= sub_action[i+1][31:0];
+				    end
+				    // pkt0 == pkt1
+				    8'b00000110: begin
+					alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
+					alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][49:49-5]];
+				    end
+				    // pkt0 == const
+				    8'b00000111: begin
+					alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
+					alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= sub_action[i+1][31:0];
+				    end
+				    // pkt0 >= pkt1, pkt0 < pkt1, pkt0 != 0 && pkt1 != 0, pkt0 != 0 || pkt1 != 0
+				    8'b00011000, 8'b00001100, 8'b00010011, 8'b00010010: begin
+					alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
+					alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][49:49-5]];
+				    end
+				    // pkt0 >= const, pkt0 < const
+                                    8'b00011011, 8'b00011101: begin
+					alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
+					alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= sub_action[i+1][31:0];
+				    end
+				    // pkt0 == 0
+                                    8'b00010100: begin
+					alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
+				    end
+				    // pkt0 != 0 ? Pkt1 : pkt2
+                                    8'b00010000: begin
+					alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
+					alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][49:49-5]];
+					alu_in_4B_3[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][43:43-5]];
+				    end
+				    // pkt0 != 0 ? Pkt1 : const
+                                    8'b00010001: begin
+					alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
+					alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][49:49-5]];
+                                        alu_in_4B_3[(i+1)*width_4B-1 -: width_4B] <= sub_action[i+1][31:0];
+				    end
+
         		            //if there is no action to take, output the original value
         		            default: begin
         		                //alu_1 should be set to the phv value

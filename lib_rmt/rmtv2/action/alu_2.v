@@ -156,6 +156,45 @@ always @(*) begin
 		    8'b00001110: begin
 		        container_out_next = operand_2_in;
 		    end
+                    8'b00000011: begin
+			container_out_next = operand_2_in - operand_1_in;
+		    end
+		    8'b00000100: begin
+			container_out_next = operand_1_in != operand_2_in;
+		    end
+		    8'b00000101: begin
+			container_out_next = operand_1_in != operand_2_in;
+		    end
+		    8'b00000110: begin
+			container_out_next = operand_1_in == operand_2_in;
+		    end
+		    8'b00010111: begin
+			container_out_next = operand_1_in == operand_2_in;
+		    end
+		    8'b00011000: begin
+			container_out_next = operand_1_in >= operand_2_in;
+		    end
+		    8'b00011011: begin
+			container_out_next = operand_1_in >= operand_2_in;
+		    end
+		    8'b00001100, 8'b00011101: begin
+			container_out_next = operand_1_in < operand_2_in;
+		    end
+		    8'b00010100: begin
+			container_out_next = (operand_1_in != 0);
+		    end
+		    8'b00010011: begin
+			container_out_next = ((operand_1_in != 0) && (operand_2_in != 0));
+		    end
+		    8'b00010010: begin
+			container_out_next = ((operand_1_in != 0) || (operand_2_in != 0));
+		    end
+		    8'b00010001, 8'b00010000: begin
+			if (operand_1_in != 0)
+				container_out_next = operand_2_in;
+			else
+				container_out_next = operand_3_in;
+		    end
                     //cannot go back to IDLE since this
                     //might be a legal action.
                     default: begin
