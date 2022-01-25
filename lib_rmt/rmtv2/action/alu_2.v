@@ -19,7 +19,7 @@ module alu_2 #(
     input [DATA_WIDTH-1:0]            operand_1_in,
     input [DATA_WIDTH-1:0]            operand_2_in,
     input [DATA_WIDTH-1:0]            operand_3_in,
-    input [DATA_WIDTH-1:0]            operand_4_in,
+    //input [DATA_WIDTH-1:0]            operand_4_in,
 	output reg 						  ready_out,
 
 	input [15:0]						page_tbl_out,
@@ -31,6 +31,41 @@ module alu_2 #(
 	input								ready_in
 
 );
+
+function integer addition (input integer in_a, in_b);
+	addition = in_a + in_b;
+endfunction : addition
+
+function integer sub (input integer in_a, in_b);
+	sub = in_b - in_a;
+endfunction : sub
+
+function integer equal_func (input integer in_a, in_b);
+	equal_func = (in_a == in_b);
+endfunction : equal_func
+
+function integer not_equal_func (input integer in_a, in_b);
+	not_equal_func = (in_b != in_a);
+endfunction : not_equal_func
+
+function integer geq_func (input integer in_a, in_b);
+	geq_func = (in_a >= in_b);
+endfunction : geq_func
+
+function integer less_func (input integer in_a, in_b);
+	less_func = (in_a < in_b);
+endfunction : less_func
+
+function integer ite_func (input integer in_a, in_b, in_c);
+	if (in_a != 0)
+	begin
+		ite_func = in_b;
+	end
+	else
+	begin
+		ite_func = in_c;
+	end
+endfunction : ite_func
 
 reg  [7:0]           action_type, action_type_next;
 
@@ -129,11 +164,11 @@ always @(*) begin
                 case(action_in[63:63-7])
                     //add/addi ops 
                     8'b00000001, 8'b00001001: begin
-                        container_out_next = operand_1_in + operand_2_in;
+                        container_out_next = addition(operand_1_in, operand_2_in);
                     end 
                     //sub/subi ops
                     8'b00000010, 8'b00001010: begin
-                        container_out_next = operand_1_in - operand_2_in;
+                        container_out_next = sub(operand_2_in, operand_1_in);
                     end
 		    // TODO: add if-else ALU
 		    8'b00001100: begin
@@ -161,43 +196,45 @@ always @(*) begin
 		        container_out_next = operand_2_in;
 		    end
                     8'b00000011: begin
-			container_out_next = operand_2_in - operand_1_in;
+			container_out_next = sub(operand_1_in, operand_2_in);
 		    end
 		    8'b00000100: begin
-			container_out_next = operand_1_in != operand_2_in;
+			container_out_next = not_equal_func(operand_1_in, operand_2_in);
 		    end
 		    8'b00000101: begin
-			container_out_next = operand_1_in != operand_2_in;
+			container_out_next = not_equal_func(operand_1_in, operand_2_in);
 		    end
 		    8'b00000110: begin
-			container_out_next = operand_1_in == operand_2_in;
+			container_out_next = equal_func(operand_1_in, operand_2_in);
 		    end
 		    8'b00010111: begin
-			container_out_next = operand_1_in == operand_2_in;
+			container_out_next = equal_func(operand_1_in, operand_2_in);
 		    end
 		    8'b00011000: begin
-			container_out_next = operand_1_in >= operand_2_in;
+			container_out_next = geq_func(operand_1_in, operand_2_in);
 		    end
 		    8'b00011011: begin
-			container_out_next = operand_1_in >= operand_2_in;
+			container_out_next = geq_func(operand_1_in, operand_2_in);
 		    end
 		    8'b00011100, 8'b00011101: begin
-			container_out_next = operand_1_in < operand_2_in;
+			container_out_next = less_func(operand_1_in, operand_2_in);
 		    end
 		    8'b00010100: begin
-			container_out_next = (operand_1_in != 0);
+			container_out_next = not_equal_func(operand_1_in, 0);
 		    end
 		    8'b00010011: begin
-			container_out_next = ((operand_1_in != 0) && (operand_2_in != 0));
+			container_out_next = (not_equal_func(operand_1_in, 0) && not_equal_func(operand_2_in, 0));
 		    end
 		    8'b00010010: begin
-			container_out_next = ((operand_1_in != 0) || (operand_2_in != 0));
+			container_out_next = (not_equal_func(operand_1_in, 0) || not_equal_func(operand_2_in, 0));
 		    end
 		    8'b00010001, 8'b00010000: begin
+			//container_out_next = ite_func(operand_1_in, operand_2_in, operand_3_in);
 			if (operand_1_in != 0)
 				container_out_next = operand_2_in;
 			else
 				container_out_next = operand_3_in;
+					
 		    end
                     //cannot go back to IDLE since this
                     //might be a legal action.
