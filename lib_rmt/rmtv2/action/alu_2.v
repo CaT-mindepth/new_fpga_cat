@@ -67,6 +67,17 @@ function integer ite_func (input integer in_a, in_b, in_c);
 	end
 endfunction : ite_func
 
+function integer temp_func(input integer in_a, in_b);
+	if (geq_func(in_a, in_b))
+	begin
+		temp_func = 0;
+	end
+	else
+	begin
+		temp_func = in_a + 1;
+	end
+endfunction : temp_func
+
 reg  [7:0]           action_type, action_type_next;
 
 //regs for RAM access
@@ -76,8 +87,11 @@ wire [31:0]					store_din_w;
 reg  [31:0]                 store_din, store_din_next;
 
 wire [31:0]                 load_data;
+wire [31:0]                 load_data_w;
 wire [4:0]					load_addr;
 // reg [4:0]                  load_addr, load_addr_next;
+
+assign load_data_w = load_data;
 
 reg  [2:0]                  alu_state, alu_state_next;
 reg [DATA_WIDTH-1:0]		container_out, container_out_next;
@@ -100,12 +114,12 @@ reg 						ready_out_next;
 //assign load_addr = operand_2_in[4:0] + base_addr;
 assign load_addr = operand_2_in[4:0];
 
-assign store_din_w = (action_type==8'b00001000||action_type==8'b00001100)?store_din:
-						((action_type==8'b00000111)?(load_data+1):0);
+assign store_din_w = (action_type==8'b00001100)?(temp_func(load_data, operand_3_in)):((action_type==8'b00001000)?store_din:
+						((action_type==8'b00000111)?(load_data+1):0));
 
-assign container_out_w = (action_type==8'b00001011||action_type==8'b00001100)?load_data:
+assign container_out_w = (action_type==8'b00001100)?(temp_func(load_data, operand_3_in)):((action_type==8'b00001011||action_type==8'b00001100)?load_data:
 							(action_type==8'b00000111)?(load_data+1):
-							container_out;
+							container_out);
 
 /*
 7 operations to support:
@@ -265,62 +279,32 @@ always @(*) begin
 		end
         EMPTY2_S: begin
             //wait for the result of RAM
-			if (ready_in && action_type!=8'b00001100) begin
+			if (ready_in) begin
 				alu_state_next = IDLE_S;
 				container_out_valid_next = 1;
 				ready_out_next = 1;
 
 				// action_type
-				if ((action_type==8'b00001000 || action_type==8'b00000111) &&
+				if ((action_type==8'b00001000 || action_type==8'b00000111 || action_type==8'b00001100) &&
 						overflow==0) begin
 					store_en_next = 1'b1;
 				end
-			end
-			else if (ready_in && action_type==8'b00001100) begin
-				alu_state_next = IDLE_S;
-				container_out_valid_next = 1;
-				ready_out_next = 1;
-				if (load_data == 30)
-					store_din_next = 0;
-				else
-					store_din_next = load_data + 1;
-				store_en_next = 1'b1;
 			end
 			else begin
 				alu_state_next = HALT_S;
 			end
         end
-	EMPTY2_S1: begin
-		if (ready_in && action_type==8'b00001100) begin
-			alu_state_next = IDLE_S;
-		end
-		else begin
-			alu_state_next = EMPTY2_S1;
-		end
-	end
 		HALT_S: begin
-			if (ready_in && action_type!=8'b00001100) begin
+			if (ready_in) begin
 				alu_state_next = IDLE_S;
 				container_out_valid_next = 1;
 				ready_out_next = 1;
 
 				// action_type
-				if ((action_type==8'b00001000 || action_type==8'b00000111) &&
+				if ((action_type==8'b00001000 || action_type==8'b00000111 || action_type==8'b00001100) &&
 						overflow==0) begin
 					store_en_next = 1'b1;
 				end
-			end
-			else if (ready_in && action_type==8'b00001100) begin
-				alu_state_next = IDLE_S;
-				container_out_valid_next = 1;
-				ready_out_next = 1;
-				if (load_data == 30)
-					store_din_next = 0;
-				else
-					store_din_next = load_data + 1;
-			end
-			else begin
-				alu_state_next = HALT_S;
 			end
 		end
 	endcase
