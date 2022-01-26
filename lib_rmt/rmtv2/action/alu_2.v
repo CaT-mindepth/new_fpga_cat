@@ -229,12 +229,7 @@ always @(*) begin
 			container_out_next = (not_equal_func(operand_1_in, 0) || not_equal_func(operand_2_in, 0));
 		    end
 		    8'b00010001, 8'b00010000: begin
-			//container_out_next = ite_func(operand_1_in, operand_2_in, operand_3_in);
-			if (operand_1_in != 0)
-				container_out_next = operand_2_in;
-			else
-				container_out_next = operand_3_in;
-					
+			container_out_next = ite_func(operand_1_in, operand_2_in, operand_3_in);
 		    end
                     //cannot go back to IDLE since this
                     //might be a legal action.
