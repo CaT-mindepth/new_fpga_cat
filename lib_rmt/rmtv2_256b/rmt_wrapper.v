@@ -720,6 +720,8 @@ stage3
 	.c_m_axis_tlast(ctrl_s_axis_tlast_6),
 	.c_m_axis_tvalid(ctrl_s_axis_tvalid_6)
 );
+*/
+
 stage #(
 	.C_S_AXIS_DATA_WIDTH(256),
 	.STAGE_ID(0)
@@ -760,12 +762,10 @@ stage0
 	.c_m_axis_tvalid(ctrl_s_axis_tvalid_3)
 );
 
-*/
-
 // [NOTICE] change to last stage
 last_stage #(
 	.C_S_AXIS_DATA_WIDTH(256),
-	.STAGE_ID(0)
+	.STAGE_ID(1)
 )
 stage4
 (
@@ -773,19 +773,21 @@ stage4
     .aresetn				(aresetn),
 
 	// input
-    // .phv_in					(stg3_phv_out_d1),
-    // .phv_in_valid			(stg3_phv_out_valid_d1),
-	// .vlan_in				(stg3_vlan_out_r),
-	// .vlan_valid_in			(stg3_vlan_valid_out_r),
+    .phv_in					(stg0_phv_out_d1),
+    .phv_in_valid			(stg0_phv_out_valid_d1),
+	.vlan_in				(stg0_vlan_out_r),
+	.vlan_valid_in			(stg0_vlan_valid_out_r),
 	// .vlan_ready_out			(last_stg_vlan_ready),
-    .phv_in					(stg0_phv_in_d1),
-    .phv_in_valid			(stg0_phv_in_valid_d1),
-	.vlan_in				(stg0_vlan_in_r),
-	.vlan_valid_in			(stg0_vlan_valid_in_r),
-	.vlan_ready_out			(stg0_vlan_ready),
+	.vlan_ready_out			(stg1_vlan_ready),
+    // .phv_in					(stg0_phv_in_d1),
+    // .phv_in_valid			(stg0_phv_in_valid_d1),
+	// .vlan_in				(stg0_vlan_in_r),
+	// .vlan_valid_in			(stg0_vlan_valid_in_r),
+	// .vlan_ready_out			(stg0_vlan_ready),
 	// back-pressure signals
 	// .stage_ready_out		(last_stg_ready),
-	.stage_ready_out		(stg0_ready),
+	// .stage_ready_out		(stg0_ready),
+	.stage_ready_out		(stg1_ready),
 	// output
     .phv_out_0				(last_stg_phv_out[0]),
     .phv_out_valid_0		(last_stg_phv_out_valid[0]),
@@ -804,11 +806,11 @@ stage4
 	.phv_fifo_ready_3		(~phv_fifo_nearly_full[3]),
 
 	// control path
-    .c_s_axis_tdata(ctrl_s_axis_tdata_2_r),
-	.c_s_axis_tuser(ctrl_s_axis_tuser_2_r),
-	.c_s_axis_tkeep(ctrl_s_axis_tkeep_2_r),
-	.c_s_axis_tlast(ctrl_s_axis_tlast_2_r),
-	.c_s_axis_tvalid(ctrl_s_axis_tvalid_2_r),
+    .c_s_axis_tdata(ctrl_s_axis_tdata_3_r),
+	.c_s_axis_tuser(ctrl_s_axis_tuser_3_r),
+	.c_s_axis_tkeep(ctrl_s_axis_tkeep_3_r),
+	.c_s_axis_tlast(ctrl_s_axis_tlast_3_r),
+	.c_s_axis_tvalid(ctrl_s_axis_tvalid_3_r),
 
     .c_m_axis_tdata(ctrl_s_axis_tdata_7),
 	.c_m_axis_tuser(ctrl_s_axis_tuser_7),
