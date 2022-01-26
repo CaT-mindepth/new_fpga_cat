@@ -24,7 +24,7 @@ module crossbar #(
     output reg [width_4B*64-1:0]   alu_in_4B_1,
     output reg [width_4B*64-1:0]   alu_in_4B_2,
     output reg [width_4B*64-1:0]   alu_in_4B_3,
-    // output reg [width_4B*64-1:0]   alu_in_4B_4,
+    output reg [width_4B*64-1:0]   alu_in_4B_4,
 
     output reg [255:0]            phv_remain_data,
 
@@ -86,7 +86,7 @@ always @(posedge clk or negedge rst_n) begin
         alu_in_4B_1 <= 256'b0;
         alu_in_4B_2 <= 256'b0;
         alu_in_4B_3 <= 256'b0;
-        //alu_in_4B_4 <= 256'b0;
+        alu_in_4B_4 <= 256'b0;
 
 		state <= IDLE;
 		ready_out <= 1;
@@ -108,7 +108,7 @@ always @(posedge clk or negedge rst_n) begin
         		    //4B is a bit of differernt from 2B and 6B
         		    for(i=63; i>=0; i=i-1) begin
         		        alu_in_4B_3[(i+1)*width_4B-1 -: width_4B] <= cont_4B[i];
-				//alu_in_4B_4[(i+1)*width_4B-1 -: width_4B] <= cont_4B[i];
+				alu_in_4B_4[(i+1)*width_4B-1 -: width_4B] <= cont_4B[i];
         		        casez(sub_action[i+1][63:63-7])
         		            //be noted that 2 ops need to be the same width
         		            8'b00000001, 8'b00000010: begin

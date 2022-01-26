@@ -19,7 +19,7 @@ module alu_2 #(
     input [DATA_WIDTH-1:0]            operand_1_in,
     input [DATA_WIDTH-1:0]            operand_2_in,
     input [DATA_WIDTH-1:0]            operand_3_in,
-    //input [DATA_WIDTH-1:0]            operand_4_in,
+    input [DATA_WIDTH-1:0]            operand_4_in,
 	output reg 						  ready_out,
 
 	input [15:0]						page_tbl_out,
