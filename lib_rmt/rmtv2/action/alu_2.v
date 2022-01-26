@@ -97,12 +97,13 @@ reg 						ready_out_next;
 
 //support tenant isolation
 // assign load_addr = store_addr[4:0] + base_addr;
-assign load_addr = operand_2_in[4:0] + base_addr;
+//assign load_addr = operand_2_in[4:0] + base_addr;
+assign load_addr = operand_2_in[4:0];
 
-assign store_din_w = (action_type==8'b00001000)?store_din:
+assign store_din_w = (action_type==8'b00001000||action_type==8'b00001100)?store_din:
 						((action_type==8'b00000111)?(load_data+1):0);
 
-assign container_out_w = (action_type==8'b00001011)?load_data:
+assign container_out_w = (action_type==8'b00001011||action_type==8'b00001100)?load_data:
 							(action_type==8'b00000111)?(load_data+1):
 							container_out;
 
@@ -133,7 +134,8 @@ localparam  IDLE_S = 3'd0,
             OB_ADDR_S = 3'd2,
             EMPTY2_S = 3'd3,
             OUTPUT_S = 3'd4,
-			HALT_S = 3'd5;
+	    HALT_S = 3'd5,
+	    EMPTY2_S1 = 3'd6;
 
 always @(*) begin
 	alu_state_next = alu_state;
@@ -172,6 +174,8 @@ always @(*) begin
                     end
 		    // TODO: add if-else ALU
 		    8'b00001100: begin
+			container_out_next = operand_3_in;
+			store_addr_next = operand_2_in[4:0];
 		    end
                     //store op (interact with RAM)
                     8'b00001000: begin
@@ -239,15 +243,16 @@ always @(*) begin
 				endcase
 
 				//ok, if its `load` op, needs to check overflow.
-            	if(action_in[63:63-7] == 8'b00001011 || action_in[63:63-7] == 8'b00000111 || action_in[63:63-7] == 8'b00001000) begin
+            	if(action_in[63:63-7] == 8'b00001011 || action_in[63:63-7] == 8'b00000111 || action_in[63:63-7] == 8'b00001000 || action_in[63:63-7] == 8'b00001100) begin
             	    if(operand_2_in[4:0] > addr_len) begin
             	        overflow_next = 1'b1;
             	    end
             	    else begin
             	        overflow_next = 1'b0;
             	        //its the right time to write for `store`
-            	        if(action_in[63:63-7] == 8'b00001000 || action_in[63:63-7] == 8'b00000111) begin
-            	            store_addr_next = base_addr + operand_2_in[4:0];
+            	        if(action_in[63:63-7] == 8'b00001000 || action_in[63:63-7] == 8'b00000111 || action_in[63:63-7] == 8'b00001100) begin
+            	            //store_addr_next = base_addr + operand_2_in[4:0];
+			    store_addr_next = operand_2_in[4:0];
             	            //store_din_r = operand_1_in;
             	            //store_en_next = 1'b1;
             	        end
@@ -260,7 +265,7 @@ always @(*) begin
 		end
         EMPTY2_S: begin
             //wait for the result of RAM
-			if (ready_in) begin
+			if (ready_in && action_type!=8'b00001100) begin
 				alu_state_next = IDLE_S;
 				container_out_valid_next = 1;
 				ready_out_next = 1;
@@ -270,13 +275,31 @@ always @(*) begin
 						overflow==0) begin
 					store_en_next = 1'b1;
 				end
+			end
+			else if (ready_in && action_type==8'b00001100) begin
+				alu_state_next = IDLE_S;
+				container_out_valid_next = 1;
+				ready_out_next = 1;
+				if (load_data == 30)
+					store_din_next = 0;
+				else
+					store_din_next = load_data + 1;
+				store_en_next = 1'b1;
 			end
 			else begin
 				alu_state_next = HALT_S;
 			end
         end
+	EMPTY2_S1: begin
+		if (ready_in && action_type==8'b00001100) begin
+			alu_state_next = IDLE_S;
+		end
+		else begin
+			alu_state_next = EMPTY2_S1;
+		end
+	end
 		HALT_S: begin
-			if (ready_in) begin
+			if (ready_in && action_type!=8'b00001100) begin
 				alu_state_next = IDLE_S;
 				container_out_valid_next = 1;
 				ready_out_next = 1;
@@ -286,6 +309,18 @@ always @(*) begin
 						overflow==0) begin
 					store_en_next = 1'b1;
 				end
+			end
+			else if (ready_in && action_type==8'b00001100) begin
+				alu_state_next = IDLE_S;
+				container_out_valid_next = 1;
+				ready_out_next = 1;
+				if (load_data == 30)
+					store_din_next = 0;
+				else
+					store_din_next = load_data + 1;
+			end
+			else begin
+				alu_state_next = HALT_S;
 			end
 		end
 	endcase
