@@ -67,22 +67,22 @@ reg [ACT_LEN*NUM_PHV_CONT-1:0]				match2action_action_all_r;
 wire										match2action_action_valid_all;
 reg											match2action_action_valid_all_r;
 
-assign match2action_action_all = match2action_action[0] || 
-									match2action_action[1] ||
-									match2action_action[2] ||
-									match2action_action[3] ||
-									match2action_action[4] ||
-									match2action_action[5] ||
-									match2action_action[6] ||
+assign match2action_action_all = match2action_action[0] |
+									match2action_action[1] |
+									match2action_action[2] |
+									match2action_action[3] |
+									match2action_action[4] |
+									match2action_action[5] |
+									match2action_action[6] |
 									match2action_action[7];
 
-assign match2action_action_valid_all = match2action_action_valid[0] ||
-										match2action_action_valid[1] ||
-										match2action_action_valid[2] ||
-										match2action_action_valid[3] ||
-										match2action_action_valid[4] ||
-										match2action_action_valid[5] ||
-										match2action_action_valid[6] ||
+assign match2action_action_valid_all = match2action_action_valid[0] |
+										match2action_action_valid[1] |
+										match2action_action_valid[2] |
+										match2action_action_valid[3] |
+										match2action_action_valid[4] |
+										match2action_action_valid[5] |
+										match2action_action_valid[6] |
 										match2action_action_valid[7];
 
 wire [C_VLANID_WIDTH-1:0]	act_vlan_out;
