@@ -125,7 +125,7 @@ always @(posedge clk or negedge rst_n) begin
         		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= sub_action[i+1][31:0];
 				    end
         		            //loadd put here
-        		            8'b00001011, 8'b00001000, 8'b00010111: begin
+        		            8'b00001011, 8'b00001000: begin
         		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
         		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][49:49-5]];
         		            end
@@ -139,8 +139,8 @@ always @(posedge clk or negedge rst_n) begin
 					alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
 					alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][49:49-5]];
    				    end
-				    // pkt_0 != const
-				    8'b00000101: begin
+				    // pkt_0 != const, pkt_0 == const
+				    8'b00000101, 8'b00010111: begin
 					alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
 					alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= sub_action[i+1][31:0];
 				    end
