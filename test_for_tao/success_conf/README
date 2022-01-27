@@ -19,3 +19,5 @@ Table1: pkt_0 = 5 -> if (reg[pkt_1] == 3) {reg[pkt_2] = 0; pkt_1 = 1;} else {reg
 Table2: pkt_3 = 5 -> pkt_4 = 7; pkt_5 = 7;
 success16: (rcp.c from Domino)
 pkt_0 = 5 -> reg[pkt_4] = reg[pkt_4] + pkt_1; if (pkt_2 < 5) {reg[pkt_5] += pkt_2; reg[pkt_6] += 1;}
+success17: (marple_new_flow.c from Domino)
+pkt_0 = 5 -> if (reg[pkt_2] == 0) {reg[pkt_2] = 1; pkt_1 = 1;}
