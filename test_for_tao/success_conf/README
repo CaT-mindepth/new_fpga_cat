@@ -12,4 +12,5 @@ success9: pkt_0 = 5 -> pkt_1 = pkt_2 >= pkt_3
 success10: pkt_0 = 5 -> if (pkt_2!=0) {pkt_1 = pkt_3;} else {pkt_1 = pkt_4;}
 success11: pkt_0 = 5 -> pkt_1 = (pkt_2 != 0 && pkt_3 != 0);
 success12: pkt_0 = 5 -> pkt_1 = (pkt2 != 0);
-success12: pkt_0 = 5 -> if (reg[pkt_1] == 3) {reg[pkt_1] = 0;} else {reg[pkt_1]++;}
+success13: pkt_0 = 5 -> if (reg[pkt_1] == 3) {reg[pkt_2] = 0;} else {reg[pkt_2]++;}
+success14: pkt_0 = 5 -> if (reg[pkt_1] == 3) {reg[pkt_2] = 0; pkt_1 = 1;} else {reg[pkt_2]++; pkt_1 = 0;}
