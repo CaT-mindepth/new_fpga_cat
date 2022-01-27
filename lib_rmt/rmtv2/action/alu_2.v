@@ -67,16 +67,64 @@ function integer ite_func (input integer in_a, in_b, in_c);
 	end
 endfunction : ite_func
 
-function integer temp_func(input integer in_a, in_b);
-	if (geq_func(in_a, in_b))
+function integer mux_two (input integer in_a, in_b, sel);
+        if (sel == 0)
+        begin
+                mux_two = in_a;
+        end
+        else
+        begin
+                mux_two = in_b;
+        end
+endfunction
+
+function integer mux_three (input integer in_a, in_b, in_c, sel);
+        if (sel == 0)
+        begin
+                mux_three = in_a;
+        end
+        else if (sel == 1)
+        begin
+                mux_three = in_b;
+        end
+        else
+        begin
+                mux_three = in_c;
+        end
+endfunction
+
+function integer rel_op (input integer in_a, in_b, sel);
+        if (sel == 0)
+        begin
+                rel_op = not_equal_func(in_a, in_b);
+        end
+        else if (sel == 1)
+        begin
+                rel_op = (in_a < in_b);
+        end
+        else if (sel == 2)
+        begin
+                rel_op = (in_a > in_b);
+        end
+        else
+        begin
+                rel_op = equal_func(in_a, in_b);
+        end
+endfunction
+
+// cons_1: operand_4_in[31:26], cons_2: operand_4_in[25:20], cons_3: operand_4_in[19:14],
+// sel_1: operand_4_in[13], sel_2: operand_4_in[12:11], sel_3: operand_4_in[10], sel_4: operand_4_in[9:8], sel_5: operand_4_in[7], sel_6: operand_4_in[6:5]
+// rel_opcode: operand_4_in[4:3]
+function integer stateful_func(input integer state, pkt_1, pkt_2, cons_1, cons_2, cons_3, sel_1, sel_2, sel_3, sel_4, sel_5, sel_6, rel_opcode);
+	if (rel_op(mux_two(state, 0, sel_1), mux_three(pkt_1, pkt_2, cons_1, sel_2), rel_opcode))
 	begin
-		temp_func = 0;
+		stateful_func = mux_two(state, 0, sel_3) + mux_three(pkt_1, pkt_2, cons_2, sel_4);
 	end
 	else
 	begin
-		temp_func = in_a + 1;
+		stateful_func = mux_two(state, 0, sel_5) + mux_three(pkt_1, pkt_2, cons_3, sel_6);
 	end
-endfunction : temp_func
+endfunction : stateful_func
 
 reg  [7:0]           action_type, action_type_next;
 
@@ -113,11 +161,11 @@ reg 						ready_out_next;
 // assign load_addr = store_addr[4:0] + base_addr;
 //assign load_addr = operand_2_in[4:0] + base_addr;
 assign load_addr = operand_2_in[4:0];
-
-assign store_din_w = (action_type==8'b00001100)?(temp_func(load_data, operand_3_in)):((action_type==8'b00001000)?store_din:
+//operand_4_in[13], operand_4_in[12:11], operand_4_in[10], operand_4_in[9:8], operand_4_in[7], operand_4_in[6:5],operand_4_in[4:3]
+assign store_din_w = (action_type==8'b00001100)?(stateful_func(load_data, operand_1_in, operand_3_in, operand_4_in[31:26], operand_4_in[25:20],operand_4_in[19:14],operand_4_in[13], operand_4_in[12:11], operand_4_in[10], operand_4_in[9:8], operand_4_in[7], operand_4_in[6:5],operand_4_in[4:3])):((action_type==8'b00001000)?store_din:
 						((action_type==8'b00000111)?(load_data+1):0));
 
-assign container_out_w = (action_type==8'b00001100)?(temp_func(load_data, operand_3_in)):((action_type==8'b00001011||action_type==8'b00001100)?load_data:
+assign container_out_w = (action_type==8'b00001100)?(stateful_func(load_data, operand_1_in, operand_3_in,operand_4_in[31:26],operand_4_in[25:20],operand_4_in[19:14],operand_4_in[13], operand_4_in[12:11], operand_4_in[10], operand_4_in[9:8], operand_4_in[7], operand_4_in[6:5],operand_4_in[4:3])):((action_type==8'b00001011||action_type==8'b00001100)?load_data:
 							(action_type==8'b00000111)?(load_data+1):
 							container_out);
 

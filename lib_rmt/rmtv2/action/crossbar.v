@@ -187,7 +187,7 @@ always @(posedge clk or negedge rst_n) begin
 					alu_in_4B_3[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][43:43-5]];
 					// alu_in_4B_4: constant1-3: 6 + 6 + 6 = 18; 
 					// sel1, sel2, sel3, sel4, sel5, sel6, rel_opcode: 1 + 2 + 1 + 2 + 1 + 2 + 2 = 11
-					// alu_in_4B_4[(i+1)*width_4B-1 -: width_4B] <= sub_action[i+1][37:37-31];
+					alu_in_4B_4[(i+1)*width_4B-1 -: width_4B] <= sub_action[i+1][37:37-31];
 				    end
         		            //if there is no action to take, output the original value
         		            default: begin
