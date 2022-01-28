@@ -23,3 +23,5 @@ success17: (marple_new_flow.c from Domino)
 pkt_0 = 5 -> if (reg[pkt_2] == 0) {reg[pkt_2] = 1; pkt_1 = 1;}
 success18: (learn_filter.c from Domino)
 pkt_0 = 5 -> if (reg[pkt_5] != 0 && reg[pkt_6] != 0 && reg[pkt_7] != 0) {pkt_1 = 1;} else {pkt_1 = 0;} reg[pkt_5] = 1; reg[pkt_6] = 1; reg[pkt_7] = 1;
+success19: (marple_tcp.c from Domino)
+pkt_0 = 5 -> if (reg[pkt_2] > pkt_1) {reg[pkt_3]++;} else {reg[pkt_2] = pkt_1;}
