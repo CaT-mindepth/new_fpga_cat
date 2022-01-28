@@ -802,12 +802,11 @@ stage1
 	.c_m_axis_tvalid(ctrl_s_axis_tvalid_4)
 );
 
-// [NOTICE] change to last stage
-last_stage #(
+stage #(
 	.C_S_AXIS_DATA_WIDTH(256),
 	.STAGE_ID(2)
 )
-stage4
+stage2
 (
 	.axis_clk				(clk),
     .aresetn				(aresetn),
@@ -817,8 +816,49 @@ stage4
     .phv_in_valid			(stg1_phv_out_valid_d1),
 	.vlan_in				(stg1_vlan_out_r),
 	.vlan_valid_in			(stg1_vlan_valid_out_r),
-	// .vlan_ready_out			(last_stg_vlan_ready),
 	.vlan_ready_out			(stg2_vlan_ready),
+	// output
+	.vlan_out				(stg2_vlan_out),
+	.vlan_valid_out			(stg2_vlan_valid_out),
+	.vlan_out_ready			(stg3_vlan_ready),
+	// output
+    .phv_out				(stg2_phv_out),
+    .phv_out_valid			(stg2_phv_out_valid),
+	// back-pressure signals
+	.stage_ready_out		(stg2_ready),
+	.stage_ready_in			(stg3_ready),
+
+	// control path
+    .c_s_axis_tdata(ctrl_s_axis_tdata_4_r),
+	.c_s_axis_tuser(ctrl_s_axis_tuser_4_r),
+	.c_s_axis_tkeep(ctrl_s_axis_tkeep_4_r),
+	.c_s_axis_tlast(ctrl_s_axis_tlast_4_r),
+	.c_s_axis_tvalid(ctrl_s_axis_tvalid_4_r),
+
+    .c_m_axis_tdata(ctrl_s_axis_tdata_5),
+	.c_m_axis_tuser(ctrl_s_axis_tuser_5),
+	.c_m_axis_tkeep(ctrl_s_axis_tkeep_5),
+	.c_m_axis_tlast(ctrl_s_axis_tlast_5),
+	.c_m_axis_tvalid(ctrl_s_axis_tvalid_5)
+);
+
+// [NOTICE] change to last stage
+last_stage #(
+	.C_S_AXIS_DATA_WIDTH(256),
+	.STAGE_ID(3)
+)
+stage4
+(
+	.axis_clk				(clk),
+    .aresetn				(aresetn),
+
+	// input
+    .phv_in					(stg2_phv_out_d1),
+    .phv_in_valid			(stg2_phv_out_valid_d1),
+	.vlan_in				(stg2_vlan_out_r),
+	.vlan_valid_in			(stg2_vlan_valid_out_r),
+	// .vlan_ready_out			(last_stg_vlan_ready),
+	.vlan_ready_out			(stg3_vlan_ready),
     // .phv_in					(stg0_phv_in_d1),
     // .phv_in_valid			(stg0_phv_in_valid_d1),
 	// .vlan_in				(stg0_vlan_in_r),
@@ -827,7 +867,7 @@ stage4
 	// back-pressure signals
 	// .stage_ready_out		(last_stg_ready),
 	// .stage_ready_out		(stg0_ready),
-	.stage_ready_out		(stg2_ready),
+	.stage_ready_out		(stg3_ready),
 	// output
     .phv_out_0				(last_stg_phv_out[0]),
     .phv_out_valid_0		(last_stg_phv_out_valid[0]),
@@ -846,11 +886,11 @@ stage4
 	.phv_fifo_ready_3		(~phv_fifo_nearly_full[3]),
 
 	// control path
-    .c_s_axis_tdata(ctrl_s_axis_tdata_4_r),
-	.c_s_axis_tuser(ctrl_s_axis_tuser_4_r),
-	.c_s_axis_tkeep(ctrl_s_axis_tkeep_4_r),
-	.c_s_axis_tlast(ctrl_s_axis_tlast_4_r),
-	.c_s_axis_tvalid(ctrl_s_axis_tvalid_4_r),
+    .c_s_axis_tdata(ctrl_s_axis_tdata_5_r),
+	.c_s_axis_tuser(ctrl_s_axis_tuser_5_r),
+	.c_s_axis_tkeep(ctrl_s_axis_tkeep_5_r),
+	.c_s_axis_tlast(ctrl_s_axis_tlast_5_r),
+	.c_s_axis_tvalid(ctrl_s_axis_tvalid_5_r),
 
     .c_m_axis_tdata(ctrl_s_axis_tdata_7),
 	.c_m_axis_tuser(ctrl_s_axis_tuser_7),
