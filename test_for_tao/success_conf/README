@@ -27,3 +27,5 @@ success19: (marple_tcp.c from Domino)
 pkt_0 = 5 -> if (reg[pkt_2] > pkt_1) {reg[pkt_3]++;} else {reg[pkt_2] = pkt_1;}
 success20: (flowlets.c from Domino)
 pkt_0 = 5 -> if (pkt_1 - reg[pkt_4] > 5) {reg[pkt_4] = pkt_2;}  reg[pkt_4] = pkt_1; pkt_3 = reg[pkt_5];
+success21: (blue_increase.c from Domino)
+pkt_0 = 5 -> pkt_1 = pkt_2 - 10; if (pkt_1 > reg[pkt_3]) {reg[pkt_4] = reg[pkt_4] + 1; reg[pkt_3] = pkt_2;}
