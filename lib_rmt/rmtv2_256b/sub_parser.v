@@ -26,7 +26,7 @@ module sub_parser #(
 reg [VAL_OUT_LEN-1:0]		val_out_nxt;
 reg							val_out_valid_nxt;
 reg [1:0]					val_out_type_nxt;
-reg [2:0]					val_out_seq_nxt;
+reg [5:0]					val_out_seq_nxt;
 
 always @(*) begin
 	val_out_valid_nxt = 0;
