@@ -1,0 +1,9 @@
+1.two_marple_tcp:
+T1:pkt_7 = 5 -> pkt_0 = 7; pkt_1 = 7; pkt_2 = 7; pkt_3 = 7; pkt_4 = 7; pkt_5 = 7; pkt_6 = 7; 
+T2:pkt_12 = 5, pkt_15 = 5, pkt_16 = 5 -> pkt_8 = 1; pkt_9 = pkt_10; pkt_11 = pkt_12;
+T3:pkt_0 = 5 -> if (pkt_1 < s0) {
+                s1 = s1 + 1;
+            } else {
+                s0 = pkt_1;
+            }
+
