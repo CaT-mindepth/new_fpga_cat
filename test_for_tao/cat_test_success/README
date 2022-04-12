@@ -1,4 +1,4 @@
-1.two_marple_tcp:
+1.two_benchmark1_marple_tcp:
 T1:pkt_7 = 5 -> pkt_0 = 7; pkt_1 = 7; pkt_2 = 7; pkt_3 = 7; pkt_4 = 7; pkt_5 = 7; pkt_6 = 7; 
 T2:pkt_12 = 5, pkt_15 = 5, pkt_16 = 5 -> pkt_8 = 1; pkt_9 = pkt_10; pkt_11 = pkt_12;
 T3:pkt_0 = 5 -> if (pkt_1 < s0) {
@@ -6,4 +6,19 @@ T3:pkt_0 = 5 -> if (pkt_1 < s0) {
             } else {
                 s0 = pkt_1;
             }
-
+2.two_benchmark2_marple_tcp
+T1:pkt_10 = 5 -> pkt_8 = 1; pkt_4 = hdr.pkts.pkt_25;
+T2:pkt_33 = 5, pkt_34 = 5 -> pkt_32 = 7;
+T3:pkt_0 = 5 -> if (pkt_1 < s0) {
+                s1 = s1 + 1;
+            } else {
+                s0 = pkt_1;
+            }
+3.two_benchmark2_marple_tcp
+T1:pkt_7 = 5, pkt_8 = 5 -> pkt_0 = 1;
+T2:pkt_10 = 5, pkt_11 = 5 -> pkt_9 = 7
+T3:pkt_0 = 5 -> if (pkt_1 < s0) {
+                s1 = s1 + 1;
+            } else {
+                s0 = pkt_1;
+            }
