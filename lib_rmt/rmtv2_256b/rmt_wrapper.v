@@ -92,18 +92,26 @@ wire [PKT_VEC_WIDTH-1:0]			stg2_phv_out;
 wire								stg2_phv_out_valid;
 wire [PKT_VEC_WIDTH-1:0]			stg3_phv_out;
 wire								stg3_phv_out_valid;
+wire [PKT_VEC_WIDTH-1:0]			stg4_phv_out;
+wire								stg4_phv_out_valid;
+wire [PKT_VEC_WIDTH-1:0]			stg5_phv_out;
+wire								stg5_phv_out_valid;
 
 reg [PKT_VEC_WIDTH-1:0]				stg0_phv_in_d1;
 reg [PKT_VEC_WIDTH-1:0]				stg0_phv_out_d1;
 reg [PKT_VEC_WIDTH-1:0]				stg1_phv_out_d1;
 reg [PKT_VEC_WIDTH-1:0]				stg2_phv_out_d1;
 reg [PKT_VEC_WIDTH-1:0]				stg3_phv_out_d1;
+reg [PKT_VEC_WIDTH-1:0]				stg4_phv_out_d1;
+reg [PKT_VEC_WIDTH-1:0]				stg5_phv_out_d1;
 
 reg									stg0_phv_in_valid_d1;
 reg									stg0_phv_out_valid_d1;
 reg									stg1_phv_out_valid_d1;
 reg									stg2_phv_out_valid_d1;
 reg									stg3_phv_out_valid_d1;
+reg									stg4_phv_out_valid_d1;
+reg									stg5_phv_out_valid_d1;
 
 //
 wire [C_VLANID_WIDTH-1:0]			stg0_vlan_in;
@@ -120,6 +128,12 @@ wire								stg2_vlan_valid_out;
 wire								stg3_vlan_ready;
 wire [C_VLANID_WIDTH-1:0]			stg3_vlan_out;
 wire								stg3_vlan_valid_out;
+wire                                                            stg4_vlan_ready;
+wire [C_VLANID_WIDTH-1:0]                       stg4_vlan_out;
+wire                                                            stg4_vlan_valid_out;
+wire                                                            stg5_vlan_ready;
+wire [C_VLANID_WIDTH-1:0]                       stg5_vlan_out;
+wire                                                            stg5_vlan_valid_out;
 wire								last_stg_vlan_ready;
 
 reg [C_VLANID_WIDTH-1:0]			stg0_vlan_in_r;
@@ -132,12 +146,18 @@ reg [C_VLANID_WIDTH-1:0]			stg2_vlan_out_r;
 reg									stg2_vlan_valid_out_r;
 reg [C_VLANID_WIDTH-1:0]			stg3_vlan_out_r;
 reg									stg3_vlan_valid_out_r;
+reg [C_VLANID_WIDTH-1:0]                        stg4_vlan_out_r;
+reg                                                                     stg4_vlan_valid_out_r;
+reg [C_VLANID_WIDTH-1:0]                        stg5_vlan_out_r;
+reg                                                                     stg5_vlan_valid_out_r;
 // back pressure signals
 wire s_axis_tready_p;
 wire stg0_ready;
 wire stg1_ready;
 wire stg2_ready;
 wire stg3_ready;
+wire stg4_ready;
+wire stg5_ready;
 wire last_stg_ready;
 
 //NOTE: to filter out packets other than UDP/IP.
@@ -240,6 +260,31 @@ reg [((C_S_AXIS_DATA_WIDTH/8))-1:0]		ctrl_s_axis_tkeep_7_r;
 reg [C_S_AXIS_TUSER_WIDTH-1:0]				ctrl_s_axis_tuser_7_r;
 reg 										ctrl_s_axis_tvalid_7_r;
 reg 										ctrl_s_axis_tlast_7_r;
+
+wire [C_S_AXIS_DATA_WIDTH-1:0]                          ctrl_s_axis_tdata_8;
+wire [((C_S_AXIS_DATA_WIDTH/8))-1:0]            ctrl_s_axis_tkeep_8;
+wire [C_S_AXIS_TUSER_WIDTH-1:0]                         ctrl_s_axis_tuser_8;
+wire                                                                            ctrl_s_axis_tvalid_8;
+wire                                                                            ctrl_s_axis_tlast_8;
+
+reg [C_S_AXIS_DATA_WIDTH-1:0]                           ctrl_s_axis_tdata_8_r;
+reg [((C_S_AXIS_DATA_WIDTH/8))-1:0]             ctrl_s_axis_tkeep_8_r;
+reg [C_S_AXIS_TUSER_WIDTH-1:0]                          ctrl_s_axis_tuser_8_r;
+reg                                                                             ctrl_s_axis_tvalid_8_r;
+reg                                                                             ctrl_s_axis_tlast_8_r;
+
+wire [C_S_AXIS_DATA_WIDTH-1:0]                          ctrl_s_axis_tdata_9;
+wire [((C_S_AXIS_DATA_WIDTH/8))-1:0]            ctrl_s_axis_tkeep_9;
+wire [C_S_AXIS_TUSER_WIDTH-1:0]                         ctrl_s_axis_tuser_9;
+wire                                                                            ctrl_s_axis_tvalid_9;
+wire                                                                            ctrl_s_axis_tlast_9;
+
+reg [C_S_AXIS_DATA_WIDTH-1:0]                           ctrl_s_axis_tdata_9_r;
+reg [((C_S_AXIS_DATA_WIDTH/8))-1:0]             ctrl_s_axis_tkeep_9_r;
+reg [C_S_AXIS_TUSER_WIDTH-1:0]                          ctrl_s_axis_tuser_9_r;
+reg                                                                             ctrl_s_axis_tvalid_9_r;
+reg                                                                             ctrl_s_axis_tlast_9_r;
+
     // define registers
 	wire [`REG_VLAN_DROP_FLAGS_BITS] vlan_drop_flags_reg;
 	reg [`REG_CTRL_TOKEN_BITS] ctrl_token_reg;
@@ -842,23 +887,103 @@ stage2
 	.c_m_axis_tvalid(ctrl_s_axis_tvalid_5)
 );
 
+stage #(
+        .C_S_AXIS_DATA_WIDTH(256),
+        .STAGE_ID(3)
+)
+stage3
+(
+        .axis_clk                               (clk),
+    .aresetn                            (aresetn),
+
+        // input
+    .phv_in                                     (stg2_phv_out_d1),
+    .phv_in_valid                       (stg2_phv_out_valid_d1),
+        .vlan_in                                (stg2_vlan_out_r),
+        .vlan_valid_in                  (stg2_vlan_valid_out_r),
+        .vlan_ready_out                 (stg3_vlan_ready),
+        // output
+        .vlan_out                               (stg3_vlan_out),
+        .vlan_valid_out                 (stg3_vlan_valid_out),
+        .vlan_out_ready                 (stg4_vlan_ready),
+        // output
+    .phv_out                            (stg3_phv_out),
+    .phv_out_valid                      (stg3_phv_out_valid),
+        // back-pressure signals
+        .stage_ready_out                (stg3_ready),
+        .stage_ready_in                 (stg4_ready),
+
+        // control path
+    .c_s_axis_tdata(ctrl_s_axis_tdata_5_r),
+        .c_s_axis_tuser(ctrl_s_axis_tuser_5_r),
+        .c_s_axis_tkeep(ctrl_s_axis_tkeep_5_r),
+        .c_s_axis_tlast(ctrl_s_axis_tlast_5_r),
+        .c_s_axis_tvalid(ctrl_s_axis_tvalid_5_r),
+
+    .c_m_axis_tdata(ctrl_s_axis_tdata_6),
+        .c_m_axis_tuser(ctrl_s_axis_tuser_6),
+        .c_m_axis_tkeep(ctrl_s_axis_tkeep_6),
+        .c_m_axis_tlast(ctrl_s_axis_tlast_6),
+        .c_m_axis_tvalid(ctrl_s_axis_tvalid_6)
+);
+
+stage #(
+        .C_S_AXIS_DATA_WIDTH(256),
+        .STAGE_ID(4)
+)
+stage4
+(
+        .axis_clk                               (clk),
+    .aresetn                            (aresetn),
+
+        // input
+    .phv_in                                     (stg3_phv_out_d1),
+    .phv_in_valid                       (stg3_phv_out_valid_d1),
+        .vlan_in                                (stg3_vlan_out_r),
+        .vlan_valid_in                  (stg3_vlan_valid_out_r),
+        .vlan_ready_out                 (stg4_vlan_ready),
+        // output
+        .vlan_out                               (stg4_vlan_out),
+        .vlan_valid_out                 (stg4_vlan_valid_out),
+        .vlan_out_ready                 (stg5_vlan_ready),
+        // output
+    .phv_out                            (stg4_phv_out),
+    .phv_out_valid                      (stg4_phv_out_valid),
+        // back-pressure signals
+        .stage_ready_out                (stg4_ready),
+        .stage_ready_in                 (stg5_ready),
+
+        // control path
+    .c_s_axis_tdata(ctrl_s_axis_tdata_6_r),
+        .c_s_axis_tuser(ctrl_s_axis_tuser_6_r),
+        .c_s_axis_tkeep(ctrl_s_axis_tkeep_6_r),
+        .c_s_axis_tlast(ctrl_s_axis_tlast_6_r),
+        .c_s_axis_tvalid(ctrl_s_axis_tvalid_6_r),
+
+    .c_m_axis_tdata(ctrl_s_axis_tdata_7),
+        .c_m_axis_tuser(ctrl_s_axis_tuser_7),
+        .c_m_axis_tkeep(ctrl_s_axis_tkeep_7),
+        .c_m_axis_tlast(ctrl_s_axis_tlast_7),
+        .c_m_axis_tvalid(ctrl_s_axis_tvalid_7)
+);
+
 // [NOTICE] change to last stage
 last_stage #(
 	.C_S_AXIS_DATA_WIDTH(256),
-	.STAGE_ID(3)
+	.STAGE_ID(5)
 )
-stage4
+stage5
 (
 	.axis_clk				(clk),
     .aresetn				(aresetn),
 
 	// input
-    .phv_in					(stg2_phv_out_d1),
-    .phv_in_valid			(stg2_phv_out_valid_d1),
-	.vlan_in				(stg2_vlan_out_r),
-	.vlan_valid_in			(stg2_vlan_valid_out_r),
+    .phv_in					(stg4_phv_out_d1),
+    .phv_in_valid			(stg4_phv_out_valid_d1),
+	.vlan_in				(stg4_vlan_out_r),
+	.vlan_valid_in			(stg4_vlan_valid_out_r),
 	// .vlan_ready_out			(last_stg_vlan_ready),
-	.vlan_ready_out			(stg3_vlan_ready),
+	.vlan_ready_out			(stg5_vlan_ready),
     // .phv_in					(stg0_phv_in_d1),
     // .phv_in_valid			(stg0_phv_in_valid_d1),
 	// .vlan_in				(stg0_vlan_in_r),
@@ -867,7 +992,7 @@ stage4
 	// back-pressure signals
 	// .stage_ready_out		(last_stg_ready),
 	// .stage_ready_out		(stg0_ready),
-	.stage_ready_out		(stg3_ready),
+	.stage_ready_out		(stg5_ready),
 	// output
     .phv_out_0				(last_stg_phv_out[0]),
     .phv_out_valid_0		(last_stg_phv_out_valid[0]),
@@ -886,17 +1011,17 @@ stage4
 	.phv_fifo_ready_3		(~phv_fifo_nearly_full[3]),
 
 	// control path
-    .c_s_axis_tdata(ctrl_s_axis_tdata_5_r),
-	.c_s_axis_tuser(ctrl_s_axis_tuser_5_r),
-	.c_s_axis_tkeep(ctrl_s_axis_tkeep_5_r),
-	.c_s_axis_tlast(ctrl_s_axis_tlast_5_r),
-	.c_s_axis_tvalid(ctrl_s_axis_tvalid_5_r),
+    .c_s_axis_tdata(ctrl_s_axis_tdata_7_r),
+	.c_s_axis_tuser(ctrl_s_axis_tuser_7_r),
+	.c_s_axis_tkeep(ctrl_s_axis_tkeep_7_r),
+	.c_s_axis_tlast(ctrl_s_axis_tlast_7_r),
+	.c_s_axis_tvalid(ctrl_s_axis_tvalid_7_r),
 
-    .c_m_axis_tdata(ctrl_s_axis_tdata_7),
-	.c_m_axis_tuser(ctrl_s_axis_tuser_7),
-	.c_m_axis_tkeep(ctrl_s_axis_tkeep_7),
-	.c_m_axis_tlast(ctrl_s_axis_tlast_7),
-	.c_m_axis_tvalid(ctrl_s_axis_tvalid_7)
+    .c_m_axis_tdata(ctrl_s_axis_tdata_8),
+	.c_m_axis_tuser(ctrl_s_axis_tuser_8),
+	.c_m_axis_tkeep(ctrl_s_axis_tkeep_8),
+	.c_m_axis_tlast(ctrl_s_axis_tlast_8),
+	.c_m_axis_tvalid(ctrl_s_axis_tvalid_8)
 );
 
 //
@@ -1019,12 +1144,16 @@ always @(posedge clk) begin
 		stg1_phv_out_valid_d1 <= 0;
 		stg2_phv_out_valid_d1 <= 0;
 		stg3_phv_out_valid_d1 <= 0;
+                stg4_phv_out_valid_d1 <= 0;
+                stg5_phv_out_valid_d1 <= 0;
 
 		stg0_phv_in_d1 <= 0;
 		stg0_phv_out_d1 <= 0;
 		stg1_phv_out_d1 <= 0;
 		stg2_phv_out_d1 <= 0;
 		stg3_phv_out_d1 <= 0;
+                stg4_phv_out_d1 <= 0;
+                stg5_phv_out_d1 <= 0;
 		//
 		stg0_vlan_in_r <= 0;
 		stg0_vlan_valid_in_r <= 0;
@@ -1036,6 +1165,11 @@ always @(posedge clk) begin
 		stg2_vlan_valid_out_r <= 0;
 		stg3_vlan_out_r <= 0;
 		stg3_vlan_valid_out_r <= 0;
+		stg4_vlan_out_r <= 0;
+		stg4_vlan_valid_out_r <= 0;
+		stg5_vlan_out_r <= 0;
+		stg5_vlan_valid_out_r <= 0;
+
 	end
 	else begin
 		stg0_phv_in_valid_d1 <= stg0_phv_in_valid;
@@ -1043,12 +1177,16 @@ always @(posedge clk) begin
 		stg1_phv_out_valid_d1 <= stg1_phv_out_valid;
 		stg2_phv_out_valid_d1 <= stg2_phv_out_valid;
 		stg3_phv_out_valid_d1 <= stg3_phv_out_valid;
+                stg4_phv_out_valid_d1 <= stg4_phv_out_valid;
+                stg5_phv_out_valid_d1 <= stg5_phv_out_valid;
 
 		stg0_phv_in_d1 <= stg0_phv_in;
 		stg0_phv_out_d1 <= stg0_phv_out;
 		stg1_phv_out_d1 <= stg1_phv_out;
 		stg2_phv_out_d1 <= stg2_phv_out;
 		stg3_phv_out_d1 <= stg3_phv_out;
+                stg4_phv_out_d1 <= stg4_phv_out;
+                stg5_phv_out_d1 <= stg5_phv_out;
 		//
 		stg0_vlan_in_r <= stg0_vlan_in;
 		stg0_vlan_valid_in_r <= stg0_vlan_valid_in;
@@ -1060,6 +1198,11 @@ always @(posedge clk) begin
 		stg2_vlan_valid_out_r <= stg2_vlan_valid_out;
 		stg3_vlan_out_r <= stg3_vlan_out;
 		stg3_vlan_valid_out_r <= stg3_vlan_valid_out;
+		stg4_vlan_out_r <= stg4_vlan_out;
+		stg4_vlan_valid_out_r <= stg4_vlan_valid_out;
+		stg5_vlan_out_r <= stg5_vlan_out;
+		stg5_vlan_valid_out_r <= stg5_vlan_valid_out;
+
 	end
 end
 
@@ -1106,6 +1249,18 @@ always @(posedge clk) begin
 		ctrl_s_axis_tkeep_7_r <= 0;
 		ctrl_s_axis_tlast_7_r <= 0;
 		ctrl_s_axis_tvalid_7_r <= 0;
+
+		ctrl_s_axis_tdata_8_r <= 0;
+                ctrl_s_axis_tuser_8_r <= 0;
+                ctrl_s_axis_tkeep_8_r <= 0;
+                ctrl_s_axis_tlast_8_r <= 0;
+                ctrl_s_axis_tvalid_8_r <= 0;
+
+                ctrl_s_axis_tdata_9_r <= 0;
+                ctrl_s_axis_tuser_9_r <= 0;
+                ctrl_s_axis_tkeep_9_r <= 0;
+                ctrl_s_axis_tlast_9_r <= 0;
+                ctrl_s_axis_tvalid_9_r <= 0;
 	end
 	else begin
 		ctrl_s_axis_tdata_1_r <= ctrl_s_axis_tdata_1;
@@ -1149,6 +1304,18 @@ always @(posedge clk) begin
 		ctrl_s_axis_tkeep_7_r <= ctrl_s_axis_tkeep_7;
 		ctrl_s_axis_tlast_7_r <= ctrl_s_axis_tlast_7;
 		ctrl_s_axis_tvalid_7_r <= ctrl_s_axis_tvalid_7;
+
+                ctrl_s_axis_tdata_8_r <= ctrl_s_axis_tdata_8;
+                ctrl_s_axis_tuser_8_r <= ctrl_s_axis_tuser_8;
+                ctrl_s_axis_tkeep_8_r <= ctrl_s_axis_tkeep_8;
+                ctrl_s_axis_tlast_8_r <= ctrl_s_axis_tlast_8;
+                ctrl_s_axis_tvalid_8_r <= ctrl_s_axis_tvalid_8;
+
+                ctrl_s_axis_tdata_9_r <= ctrl_s_axis_tdata_9;
+                ctrl_s_axis_tuser_9_r <= ctrl_s_axis_tuser_9;
+                ctrl_s_axis_tkeep_9_r <= ctrl_s_axis_tkeep_9;
+                ctrl_s_axis_tlast_9_r <= ctrl_s_axis_tlast_9;
+                ctrl_s_axis_tvalid_9_r <= ctrl_s_axis_tvalid_9;
 
 	end
 end
