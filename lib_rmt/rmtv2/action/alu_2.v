@@ -160,7 +160,8 @@ reg 						ready_out_next;
 //support tenant isolation
 // assign load_addr = store_addr[4:0] + base_addr;
 //assign load_addr = operand_2_in[4:0] + base_addr;
-assign load_addr = operand_2_in[4:0];
+assign load_addr = 0;
+//operand_2_in[4:0];
 //operand_4_in[13], operand_4_in[12:11], operand_4_in[10], operand_4_in[9:8], operand_4_in[7], operand_4_in[6:5],operand_4_in[4:3]
 assign store_din_w = (action_type==8'b00001100)?(stateful_func(load_data, operand_1_in, operand_3_in, operand_4_in[31:26], operand_4_in[25:20],operand_4_in[19:14],operand_4_in[13], operand_4_in[12:11], operand_4_in[10], operand_4_in[9:8], operand_4_in[7], operand_4_in[6:5],operand_4_in[4:3])):((action_type==8'b00001000)?store_din:
 						((action_type==8'b00000111)?(load_data+1):0));
@@ -236,7 +237,7 @@ always @(*) begin
                     end
 		    // TODO: add if-else ALU
 		    8'b00001100: begin
-			container_out_next = operand_3_in;
+                        container_out_next = operand_3_in;
 			store_addr_next = operand_2_in[4:0];
 		    end
                     //store op (interact with RAM)
@@ -261,8 +262,9 @@ always @(*) begin
 		    8'b00001110: begin
 		        container_out_next = operand_2_in;
 		    end
+                    // operand_1_in - operand_2_in
                     8'b00000011: begin
-			container_out_next = sub(operand_1_in, operand_2_in);
+			container_out_next = sub(operand_2_in, operand_1_in);
 		    end
 		    8'b00000100: begin
 			container_out_next = not_equal_func(operand_1_in, operand_2_in);

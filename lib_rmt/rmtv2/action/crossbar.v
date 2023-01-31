@@ -129,7 +129,7 @@ always @(posedge clk or negedge rst_n) begin
         		                alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
         		                alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][49:49-5]];
         		            end
-				    // const - pkt0
+				    // pkt0 - const
 				    8'b00000011: begin
 					alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
 					alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= sub_action[i+1][31:0];
@@ -183,7 +183,8 @@ always @(posedge clk or negedge rst_n) begin
                                     // stateful if-else
 				    8'b00001100: begin
 					alu_in_4B_1[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][55:55-5]];
-					alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][49:49-5]];
+					//alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][49:49-5]];
+                                        alu_in_4B_2[(i+1)*width_4B-1 -: width_4B] <= 6'b0;
 					alu_in_4B_3[(i+1)*width_4B-1 -: width_4B] <= cont_4B[sub_action[i+1][43:43-5]];
 					// alu_in_4B_4: constant1-3: 6 + 6 + 6 = 18; 
 					// sel1, sel2, sel3, sel4, sel5, sel6, rel_opcode: 1 + 2 + 1 + 2 + 1 + 2 + 2 = 11

@@ -62,6 +62,9 @@ wire [C_WIDTH_METADATA-1:0]                alu_in_phv_remain_data;
 wire [ACT_LEN*C_NUM_PHVS-1:0]       alu_in_action;
 wire                        alu_in_action_valid;
 
+wire [31:0] dbg_opa_in;
+assign dbg_opa_in = alu_in_4B_1[17*32 +: 32];
+
 // output phv
 wire		                phv_valid_bit;
 

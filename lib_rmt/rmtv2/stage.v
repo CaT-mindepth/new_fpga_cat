@@ -54,6 +54,11 @@ wire [C_S_AXIS_TUSER_WIDTH-1:0]				c_s_axis_tuser_1;
 wire 										c_s_axis_tlast_1;
 wire 										c_s_axis_tvalid_1;
 
+
+wire [31:0] dbg_phv_17;
+
+assign dbg_phv_17 = phv_in[256+17*32 +:32];
+
 //lookup_engine to action_engine
 wire [ACT_LEN*NUM_PHV_CONT-1:0]				match2action_action[NUM_SUB_UNIT-1:0];
 wire										match2action_action_valid[NUM_SUB_UNIT-1:0];
